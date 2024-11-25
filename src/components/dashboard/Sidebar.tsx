@@ -1,5 +1,7 @@
-import { Beer, Users, CupSoda, Settings } from "lucide-react";
+import { Beer, Users, CupSoda, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 const menuItems = [
   { icon: Beer, label: "Dashboard", active: true },
@@ -9,28 +11,46 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    toast({
+      title: "See you next time! 🍻",
+      description: "Successfully logged out",
+    });
+    navigate("/login");
+  };
+
   return (
     <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-background p-4">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Beer Dashboard</h1>
       </div>
-      <nav className="space-y-2">
+      <nav className="space-y-2 flex-1">
         {menuItems.map((item) => (
-          <a
+          <button
             key={item.label}
-            href="#"
             className={cn(
-              "flex items-center space-x-3 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+              "flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               item.active
-                ? "bg-dashboard-accent text-white"
-                : "text-gray-400 hover:bg-dashboard-card hover:text-white"
+                ? "bg-dashboard-card text-white"
+                : "text-gray-400 hover:text-white hover:bg-dashboard-card"
             )}
           >
             <item.icon className="h-5 w-5" />
             <span>{item.label}</span>
-          </a>
+          </button>
         ))}
       </nav>
+      <button
+        onClick={handleLogout}
+        className="flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-dashboard-card transition-colors"
+      >
+        <LogOut className="h-5 w-5" />
+        <span>Logout</span>
+      </button>
     </div>
   );
 };
