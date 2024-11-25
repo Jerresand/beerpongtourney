@@ -1,10 +1,10 @@
-import { Home, BarChart2, Settings, Users } from "lucide-react";
+import { Beer, Users, CupSoda, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", active: true },
-  { icon: BarChart2, label: "Analytics" },
-  { icon: Users, label: "Customers" },
+  { icon: Beer, label: "Dashboard", active: true },
+  { icon: Users, label: "The Boys" },
+  { icon: CupSoda, label: "Drink Log" },
   { icon: Settings, label: "Settings" },
 ];
 
@@ -12,7 +12,7 @@ const Sidebar = () => {
   return (
     <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-background p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-white">Beer Dashboard</h1>
       </div>
       <nav className="space-y-2">
         {menuItems.map((item) => (
