@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Trophy, Users } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import TournamentHeader from "./TournamentHeader";
+import TournamentSettings from "./TournamentSettings";
+import PlayerManagement from "./PlayerManagement";
 
 interface Player {
   name: string;
@@ -107,7 +101,6 @@ const TournamentCreator = () => {
       type: tournamentType,
     };
 
-    // Here you would typically save to a backend
     toast({
       title: "Tournament Created! 🎉",
       description: `${tournamentName} has been created with ${players.length} players`,
@@ -125,94 +118,30 @@ const TournamentCreator = () => {
   return (
     <div className="space-y-6 bg-dashboard-card p-6 rounded-lg">
       <div className="space-y-4">
-        <Input
-          placeholder="Tournament Name"
-          value={tournamentName}
-          onChange={(e) => setTournamentName(e.target.value)}
-          className="bg-dashboard-background text-white"
+        <TournamentHeader 
+          tournamentName={tournamentName}
+          setTournamentName={setTournamentName}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select value={format} onValueChange={(value: "singles" | "doubles") => setFormat(value)}>
-            <SelectTrigger className="bg-dashboard-background text-white">
-              <SelectValue placeholder="Format" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="singles">Singles</SelectItem>
-              <SelectItem value="doubles">Doubles</SelectItem>
-            </SelectContent>
-          </Select>
+        <TournamentSettings
+          format={format}
+          setFormat={setFormat}
+          tournamentType={tournamentType}
+          setTournamentType={setTournamentType}
+          matchesPerTeam={matchesPerTeam}
+          setMatchesPerTeam={setMatchesPerTeam}
+        />
 
-          <Select value={tournamentType} onValueChange={(value: "playoffs" | "regular+playoffs") => setTournamentType(value)}>
-            <SelectTrigger className="bg-dashboard-background text-white">
-              <SelectValue placeholder="Tournament Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="playoffs">Playoffs Only</SelectItem>
-              <SelectItem value="regular+playoffs">Regular Season + Playoffs</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={matchesPerTeam} onValueChange={setMatchesPerTeam}>
-            <SelectTrigger className="bg-dashboard-background text-white">
-              <SelectValue placeholder="Matches per Team" />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5].map((num) => (
-                <SelectItem key={num} value={num.toString()}>
-                  {num} {num === 1 ? "Match" : "Matches"} per Team
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedGroup} onValueChange={handleGroupSelect}>
-            <SelectTrigger className="bg-dashboard-background text-white">
-              <SelectValue placeholder="Select a Group" />
-            </SelectTrigger>
-            <SelectContent>
-              {groups.map((group) => (
-                <SelectItem key={group.name} value={group.name}>
-                  {group.name} ({group.players.length} players)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Player Name"
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddPlayer()}
-              className="bg-dashboard-background text-white"
-            />
-            <Button onClick={handleAddPlayer} variant="outline">
-              Add Player
-            </Button>
-          </div>
-
-          <div className="space-y-2 mt-4">
-            {players.map((player, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-dashboard-background p-2 rounded"
-              >
-                <span className="text-white">{player.name}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemovePlayer(index)}
-                  className="text-dashboard-text hover:text-white"
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PlayerManagement
+          newPlayerName={newPlayerName}
+          setNewPlayerName={setNewPlayerName}
+          handleAddPlayer={handleAddPlayer}
+          players={players}
+          handleRemovePlayer={handleRemovePlayer}
+          groups={groups}
+          selectedGroup={selectedGroup}
+          handleGroupSelect={handleGroupSelect}
+        />
       </div>
 
       <Button
