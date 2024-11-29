@@ -26,9 +26,9 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-background p-4">
+    <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Beer Dashboard</h1>
+        <h1 className="text-2xl font-bold text-dashboard-text">Beer Dashboard</h1>
       </div>
       <nav className="space-y-2 flex-1">
         {menuItems.map((item) => (
@@ -37,8 +37,8 @@ const Sidebar = () => {
             className={cn(
               "flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               location.pathname === item.path
-                ? "bg-dashboard-card text-white"
-                : "text-gray-400 hover:text-white hover:bg-dashboard-card"
+                ? "bg-dashboard-background text-dashboard-text"
+                : "text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background"
             )}
             onClick={() => navigate(item.path)}
           >
@@ -49,7 +49,7 @@ const Sidebar = () => {
       </nav>
       <button
         onClick={handleLogout}
-        className="flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-dashboard-card transition-colors"
+        className="flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background transition-colors"
       >
         <LogOut className="h-5 w-5" />
         <span>Logout</span>

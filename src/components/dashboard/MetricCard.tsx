@@ -11,15 +11,15 @@ interface MetricCardProps {
 
 const MetricCard = ({ title, value, description, trend, icon: Icon }: MetricCardProps) => {
   return (
-    <Card className="bg-dashboard-card p-6">
+    <Card className="bg-dashboard-card border-2 border-dashboard-accent/20 p-6 backdrop-blur-sm backdrop-filter">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-400">{title}</p>
-          <h3 className="mt-2 text-3xl font-semibold text-white">{value}</h3>
+          <p className="text-sm font-medium text-dashboard-muted">{title}</p>
+          <h3 className="mt-2 text-3xl font-bold text-dashboard-text">{value}</h3>
         </div>
         <Icon className="h-8 w-8 text-dashboard-accent" />
       </div>
-      <p className="mt-4 text-sm text-gray-400">{description}</p>
+      <p className="mt-4 text-sm text-dashboard-muted">{description}</p>
       {trend && (
         <div
           className={cn(

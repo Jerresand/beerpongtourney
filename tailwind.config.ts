@@ -25,10 +25,12 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         dashboard: {
-          background: "#1A1F2C",
-          accent: "#9b87f5",
-          card: "#252A3C",
-          muted: "#8E9196",
+          background: "#2A1810", // Dark wood brown
+          accent: "#C8963E", // Brass/gold accent
+          card: "#3C2317", // Darker wood brown
+          muted: "#8E7161", // Muted brown
+          highlight: "#D4AF37", // Gold highlight
+          text: "#E8D9B5", // Warm cream text
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -77,6 +79,9 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      backgroundImage: {
+        'wood-pattern': "url('data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='%23321b12'/%3E%3Cpath d='M0 10h100M0 30h100M0 50h100M0 70h100M0 90h100' stroke='%23291610' stroke-width='1' fill='none'/%3E%3C/svg%3E')",
       },
     },
   },

@@ -6,10 +6,12 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="flex min-h-screen bg-dashboard-background">
+    <div className="flex min-h-screen bg-dashboard-background bg-wood-pattern">
       <Sidebar />
       <main className="flex-1 p-8 overflow-auto">
-        {children}
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
