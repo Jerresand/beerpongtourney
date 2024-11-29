@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy, Users } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 interface Player {
   name: string;
@@ -30,7 +31,33 @@ const TournamentCreator = () => {
   const [format, setFormat] = useState<"singles" | "doubles">("singles");
   const [matchesPerTeam, setMatchesPerTeam] = useState("3");
   const [tournamentType, setTournamentType] = useState<"playoffs" | "regular+playoffs">("regular+playoffs");
+  const [groups, setGroups] = useState<{ name: string; players: Player[] }[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
   const { toast } = useToast();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Load groups from localStorage
+    const loadGroups = () => {
+      const groups = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          const value = localStorage.getItem(key);
+          if (value) {
+            groups.push({ name: key, players: JSON.parse(value) });
+          }
+        }
+      }
+      setGroups(groups);
+    };
+    loadGroups();
+
+    // Check if players were passed from group creation
+    if (location.state?.players) {
+      setPlayers(location.state.players);
+    }
+  }, [location.state]);
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
@@ -43,6 +70,14 @@ const TournamentCreator = () => {
     const newPlayers = [...players];
     newPlayers.splice(index, 1);
     setPlayers(newPlayers);
+  };
+
+  const handleGroupSelect = (groupName: string) => {
+    const group = groups.find(g => g.name === groupName);
+    if (group) {
+      setPlayers(group.players);
+      setSelectedGroup(groupName);
+    }
   };
 
   const handleCreateTournament = () => {
@@ -84,6 +119,7 @@ const TournamentCreator = () => {
     setFormat("singles");
     setMatchesPerTeam("3");
     setTournamentType("regular+playoffs");
+    setSelectedGroup("");
   };
 
   return (
@@ -125,6 +161,19 @@ const TournamentCreator = () => {
               {[1, 2, 3, 4, 5].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
                   {num} {num === 1 ? "Match" : "Matches"} per Team
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedGroup} onValueChange={handleGroupSelect}>
+            <SelectTrigger className="bg-dashboard-background text-white">
+              <SelectValue placeholder="Select a Group" />
+            </SelectTrigger>
+            <SelectContent>
+              {groups.map((group) => (
+                <SelectItem key={group.name} value={group.name}>
+                  {group.name} ({group.players.length} players)
                 </SelectItem>
               ))}
             </SelectContent>
