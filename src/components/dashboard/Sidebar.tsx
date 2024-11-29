@@ -1,4 +1,4 @@
-import { Beer, Users, CupSoda, Settings, LogOut } from "lucide-react";
+import { Beer, Users, CupSoda, Settings, LogOut, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 const menuItems = [
   { icon: Beer, label: "Dashboard", path: "/" },
   { icon: Users, label: "The Boys", path: "/boys" },
+  { icon: Trophy, label: "Tournament", path: "/tournament" },
   { icon: CupSoda, label: "Drink Log", path: "/drinks" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
