@@ -1,12 +1,17 @@
-import { Beer, Users, CupSoda, Settings, LogOut, Trophy } from "lucide-react";
+import { Beer, Users, CupSoda, Settings, LogOut, Trophy, Plus, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const menuItems = [
   { icon: Beer, label: "Dashboard", path: "/" },
   { icon: Users, label: "The Boys", path: "/boys" },
-  { icon: Trophy, label: "Tournament", path: "/tournament" },
   { icon: CupSoda, label: "Drink Log", path: "/drinks" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
@@ -29,7 +34,7 @@ const Sidebar = () => {
   return (
     <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-dashboard-text">Beer Dashboard</h1>
+        <h1 className="text-2xl font-bold text-dashboard-text">BeerAdmin</h1>
       </div>
       <nav className="space-y-2 flex-1">
         {menuItems.map((item) => (
@@ -47,6 +52,28 @@ const Sidebar = () => {
             <span>{item.label}</span>
           </button>
         ))}
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger className={cn(
+            "flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+            location.pathname.includes("/tournament")
+              ? "bg-dashboard-background text-dashboard-text"
+              : "text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background"
+          )}>
+            <Trophy className="h-5 w-5" />
+            <span>Tournament</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuItem onClick={() => navigate("/tournament")}>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Create New</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/active-tournaments")}>
+              <List className="mr-2 h-4 w-4" />
+              <span>Active Tournaments</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </nav>
       <button
         onClick={handleLogout}
