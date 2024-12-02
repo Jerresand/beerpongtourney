@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Player {
   name: string;
@@ -26,6 +27,7 @@ interface Tournament {
 
 const ActiveTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadTournaments = () => {
@@ -34,7 +36,6 @@ const ActiveTournaments = () => {
     };
 
     loadTournaments();
-    // Add event listener for storage changes
     window.addEventListener('storage', loadTournaments);
     
     return () => {
@@ -46,6 +47,10 @@ const ActiveTournaments = () => {
     const updatedTournaments = tournaments.filter(t => t.id !== id);
     localStorage.setItem('activeTournaments', JSON.stringify(updatedTournaments));
     setTournaments(updatedTournaments);
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/tournament/${id}`);
   };
 
   return (
@@ -83,7 +88,11 @@ const ActiveTournaments = () => {
                     </TableCell>
                     <TableCell>
                       <div className="space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(tournament.id)}
+                        >
                           Edit
                         </Button>
                         <Button 
