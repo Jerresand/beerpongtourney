@@ -49,81 +49,120 @@ interface Tournament {
   type: "playoffs" | "regular+playoffs";
 }
 
+interface Standing {
+  player: Player;
+  wins: number;
+  losses: number;
+  winPercentage: number;
+}
+
 const TournamentView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [showStatistics, setShowStatistics] = useState(false);
+  const [standings, setStandings] = useState<Standing[]>([]);
 
   useEffect(() => {
     const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
     const tournament = tournaments.find((t: Tournament) => t.id === id);
     if (tournament) {
-      // Initialize statistics if they don't exist
-      if (!tournament.matches) tournament.matches = [];
       setTournament(tournament);
+      calculateStandings(tournament);
     }
   }, [id]);
 
-  const updateTournament = (updatedTournament: Tournament) => {
+  const calculateStandings = (tournament: Tournament) => {
+    const playerStats = new Map<string, Standing>();
+
+    // Initialize standings for all players
+    tournament.players.forEach(player => {
+      playerStats.set(player.name, {
+        player,
+        wins: 0,
+        losses: 0,
+        winPercentage: 0
+      });
+    });
+
+    // Calculate wins and losses
+    tournament.matches.forEach(match => {
+      if (match.team1Score === undefined || match.team2Score === undefined) return;
+
+      const team1Won = match.team1Score > match.team2Score;
+      
+      match.team1Players.forEach(({ player }) => {
+        const stats = playerStats.get(player.name);
+        if (stats) {
+          if (team1Won) stats.wins += 1;
+          else stats.losses += 1;
+          stats.winPercentage = stats.wins / (stats.wins + stats.losses);
+        }
+      });
+
+      match.team2Players.forEach(({ player }) => {
+        const stats = playerStats.get(player.name);
+        if (stats) {
+          if (!team1Won) stats.wins += 1;
+          else stats.losses += 1;
+          stats.winPercentage = stats.wins / (stats.wins + stats.losses);
+        }
+      });
+    });
+
+    setStandings(Array.from(playerStats.values()).sort((a, b) => b.winPercentage - a.winPercentage));
+  };
+
+  const updateMatchScore = (matchId: string, team: 1 | 2, score: number, playerStats: { playerId: string, cups: number, defense: number, isIcer: boolean }[]) => {
+    if (!tournament) return;
+
     const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournament = { ...tournament };
+    const matchIndex = updatedTournament.matches.findIndex(m => m.id === matchId);
+
+    if (matchIndex === -1) return;
+
+    // Validate that cups add up to score
+    const totalCups = playerStats.reduce((sum, stat) => sum + stat.cups, 0);
+    if (totalCups !== score) {
+      toast({
+        variant: "destructive",
+        title: "Invalid cups count",
+        description: `Total cups (${totalCups}) doesn't match the score (${score})`,
+      });
+      return;
+    }
+
+    const match = updatedTournament.matches[matchIndex];
+    if (team === 1) {
+      match.team1Score = score;
+      match.team1Players = match.team1Players.map((player, index) => ({
+        ...player,
+        cups: playerStats[index].cups,
+        defense: playerStats[index].defense,
+        isIcer: playerStats[index].isIcer,
+      }));
+    } else {
+      match.team2Score = score;
+      match.team2Players = match.team2Players.map((player, index) => ({
+        ...player,
+        cups: playerStats[index].cups,
+        defense: playerStats[index].defense,
+        isIcer: playerStats[index].isIcer,
+      }));
+    }
+
     const updatedTournaments = tournaments.map((t: Tournament) =>
       t.id === id ? updatedTournament : t
     );
+
     localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
     setTournament(updatedTournament);
-  };
-
-  const validateMatch = (match: Match) => {
-    const team1TotalCups = match.team1Players.reduce((sum, p) => sum + p.cups, 0);
-    const team2TotalCups = match.team2Players.reduce((sum, p) => sum + p.cups, 0);
-    
-    if (team1TotalCups !== match.team1Score) {
-      toast({
-        title: "Invalid cups count",
-        description: `Team 1's total cups (${team1TotalCups}) doesn't match the score (${match.team1Score})`,
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (team2TotalCups !== match.team2Score) {
-      toast({
-        title: "Invalid cups count",
-        description: `Team 2's total cups (${team2TotalCups}) doesn't match the score (${match.team2Score})`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
+    calculateStandings(updatedTournament);
   };
 
   if (!tournament) return <div>Tournament not found</div>;
-
-  const getPlayerStats = () => {
-    const stats = tournament.players.map(player => ({
-      name: player.name,
-      cups: tournament.matches.reduce((sum, match) => {
-        const playerInTeam1 = match.team1Players.find(p => p.player.name === player.name);
-        const playerInTeam2 = match.team2Players.find(p => p.player.name === player.name);
-        return sum + (playerInTeam1?.cups || 0) + (playerInTeam2?.cups || 0);
-      }, 0),
-      iced: tournament.matches.reduce((sum, match) => {
-        const playerInTeam1 = match.team1Players.find(p => p.player.name === player.name);
-        const playerInTeam2 = match.team2Players.find(p => p.player.name === player.name);
-        return sum + (playerInTeam1?.isIcer ? 1 : 0) + (playerInTeam2?.isIcer ? 1 : 0);
-      }, 0),
-      defense: tournament.matches.reduce((sum, match) => {
-        const playerInTeam1 = match.team1Players.find(p => p.player.name === player.name);
-        const playerInTeam2 = match.team2Players.find(p => p.player.name === player.name);
-        return sum + (playerInTeam1?.defense || 0) + (playerInTeam2?.defense || 0);
-      }, 0),
-    }));
-
-    return stats.sort((a, b) => b.cups - a.cups);
-  };
 
   return (
     <Layout>
@@ -141,6 +180,33 @@ const TournamentView = () => {
           >
             {showStatistics ? "Show Matches" : "Show Statistics"}
           </Button>
+        </div>
+
+        {/* Standings Table */}
+        <div className="bg-dashboard-card p-6 rounded-lg">
+          <h3 className="text-xl font-bold text-white mb-4">Standings</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Player</TableHead>
+                <TableHead>W</TableHead>
+                <TableHead>L</TableHead>
+                <TableHead>Win %</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {standings.map((standing) => (
+                <TableRow key={standing.player.name}>
+                  <TableCell className="text-white">{standing.player.name}</TableCell>
+                  <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
+                  <TableCell className="text-dashboard-text">{standing.losses}</TableCell>
+                  <TableCell className="text-dashboard-text">
+                    {(standing.winPercentage * 100).toFixed(1)}%
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
 
         {showStatistics ? (
@@ -184,9 +250,181 @@ const TournamentView = () => {
           </div>
         ) : (
           <div className="bg-dashboard-card p-6 rounded-lg">
-            <h3 className="text-xl font-bold text-white mb-4">Matches</h3>
-            {/* Match list and input form will be implemented in the next iteration */}
-            <p className="text-dashboard-text">Match management coming soon...</p>
+            <h3 className="text-xl font-bold text-white mb-4">Match Schedule</h3>
+            <div className="space-y-4">
+              {tournament.matches.map((match) => (
+                <div key={match.id} className="border border-dashboard-border p-4 rounded-lg">
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Team 1 */}
+                    <div className="space-y-2">
+                      {match.team1Players.map((player, index) => (
+                        <div key={player.player.name} className="space-y-1">
+                          <p className="text-white">{player.player.name}</p>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Cups"
+                            value={player.cups || ""}
+                            onChange={(e) => {
+                              const newStats = match.team1Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: parseInt(e.target.value) || 0,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                              );
+                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Defense"
+                            value={player.defense || ""}
+                            onChange={(e) => {
+                              const newStats = match.team1Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: parseInt(e.target.value) || 0,
+                                      isIcer: p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                              );
+                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                            }}
+                          />
+                          <Button
+                            variant={player.isIcer ? "default" : "outline"}
+                            onClick={() => {
+                              const newStats = match.team1Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: !p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: false,
+                                    }
+                              );
+                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                            }}
+                          >
+                            Iced
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Score */}
+                    <div className="flex items-center justify-center text-2xl text-white">
+                      <span>{match.team1Score || 0}</span>
+                      <span className="mx-2">-</span>
+                      <span>{match.team2Score || 0}</span>
+                    </div>
+
+                    {/* Team 2 */}
+                    <div className="space-y-2">
+                      {match.team2Players.map((player, index) => (
+                        <div key={player.player.name} className="space-y-1">
+                          <p className="text-white">{player.player.name}</p>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Cups"
+                            value={player.cups || ""}
+                            onChange={(e) => {
+                              const newStats = match.team2Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: parseInt(e.target.value) || 0,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                              );
+                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Defense"
+                            value={player.defense || ""}
+                            onChange={(e) => {
+                              const newStats = match.team2Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: parseInt(e.target.value) || 0,
+                                      isIcer: p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: p.isIcer,
+                                    }
+                              );
+                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                            }}
+                          />
+                          <Button
+                            variant={player.isIcer ? "default" : "outline"}
+                            onClick={() => {
+                              const newStats = match.team2Players.map((p, i) =>
+                                i === index
+                                  ? {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: !p.isIcer,
+                                    }
+                                  : {
+                                      playerId: p.player.name,
+                                      cups: p.cups,
+                                      defense: p.defense,
+                                      isIcer: false,
+                                    }
+                              );
+                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                            }}
+                          >
+                            Iced
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
