@@ -62,9 +62,6 @@ const PlayerManagement = ({
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => handleGroupSelect(selectedGroup)} variant="outline">
-            Add Group
-          </Button>
         </div>
       </div>
 

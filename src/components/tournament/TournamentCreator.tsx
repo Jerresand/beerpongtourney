@@ -75,18 +75,36 @@ const TournamentCreator = () => {
     
     // Generate regular season matches
     for (let round = 0; round < matchesPerTeam; round++) {
-      for (let i = 0; i < numPlayers; i++) {
-        for (let j = i + 1; j < numPlayers; j++) {
-          matches.push({
-            id: crypto.randomUUID(),
-            team1Players: [players[i]],
-            team2Players: [players[j]],
-            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-            isPlayoff: false,
-            round: round + 1
-          });
-        }
+      const roundMatches: Match[] = [];
+      const availablePlayers = [...players];
+
+      while (availablePlayers.length > 1) {
+        const team1Player = availablePlayers.shift()!;
+        const team2Player = availablePlayers.shift()!;
+
+        roundMatches.push({
+          id: crypto.randomUUID(),
+          team1Players: [team1Player],
+          team2Players: [team2Player],
+          date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+          isPlayoff: false,
+          round: round + 1
+        });
       }
+
+      // If there's a player left without an opponent (bye round)
+      if (availablePlayers.length === 1) {
+        roundMatches.push({
+          id: crypto.randomUUID(),
+          team1Players: [availablePlayers[0]],
+          team2Players: [], // Empty array indicates a bye
+          date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+          isPlayoff: false,
+          round: round + 1
+        });
+      }
+
+      matches.push(...roundMatches);
     }
 
     return matches;
@@ -108,6 +126,7 @@ const TournamentCreator = () => {
   const handleGroupSelect = (groupName: string) => {
     const group = groups.find(g => g.name === groupName);
     if (group) {
+      // Replace current players with group players instead of adding them
       setPlayers(group.players);
       setSelectedGroup(groupName);
     }
