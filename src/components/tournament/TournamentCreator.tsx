@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TournamentHeader from "./TournamentHeader";
 import TournamentSettings from "./TournamentSettings";
 import PlayerManagement from "./PlayerManagement";
@@ -11,11 +11,13 @@ interface Player {
 }
 
 interface Tournament {
+  id: string;
   name: string;
   players: Player[];
   format: "singles" | "doubles";
   matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
+  createdAt: string;
 }
 
 const TournamentCreator = () => {
@@ -29,6 +31,7 @@ const TournamentCreator = () => {
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Load groups from localStorage
@@ -94,25 +97,26 @@ const TournamentCreator = () => {
     }
 
     const tournament: Tournament = {
+      id: crypto.randomUUID(),
       name: tournamentName,
       players,
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
+      createdAt: new Date().toISOString(),
     };
+
+    // Save to localStorage
+    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
 
     toast({
       title: "Tournament Created! 🎉",
       description: `${tournamentName} has been created with ${players.length} players`,
     });
 
-    // Reset form
-    setTournamentName("");
-    setPlayers([]);
-    setFormat("singles");
-    setMatchesPerTeam("3");
-    setTournamentType("regular+playoffs");
-    setSelectedGroup("");
+    // Navigate to active tournaments
+    navigate('/active-tournaments');
   };
 
   return (
