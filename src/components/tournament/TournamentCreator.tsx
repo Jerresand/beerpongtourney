@@ -10,6 +10,18 @@ interface Player {
   name: string;
 }
 
+interface Match {
+  id: string;
+  team1Players: Player[];
+  team2Players: Player[];
+  team1Score?: number;
+  team2Score?: number;
+  date: string;
+  isPlayoff: boolean;
+  round?: number;
+  series?: number;
+}
+
 interface Tournament {
   id: string;
   name: string;
@@ -17,6 +29,7 @@ interface Tournament {
   format: "singles" | "doubles";
   matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
+  matches: Match[];
   createdAt: string;
 }
 
@@ -55,6 +68,29 @@ const TournamentCreator = () => {
       setPlayers(location.state.players);
     }
   }, [location.state]);
+
+  const generateSchedule = (players: Player[], matchesPerTeam: number): Match[] => {
+    const matches: Match[] = [];
+    const numPlayers = players.length;
+    
+    // Generate regular season matches
+    for (let round = 0; round < matchesPerTeam; round++) {
+      for (let i = 0; i < numPlayers; i++) {
+        for (let j = i + 1; j < numPlayers; j++) {
+          matches.push({
+            id: crypto.randomUUID(),
+            team1Players: [players[i]],
+            team2Players: [players[j]],
+            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+            isPlayoff: false,
+            round: round + 1
+          });
+        }
+      }
+    }
+
+    return matches;
+  };
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
@@ -96,6 +132,8 @@ const TournamentCreator = () => {
       return;
     }
 
+    const matches = generateSchedule(players, parseInt(matchesPerTeam));
+
     const tournament: Tournament = {
       id: crypto.randomUUID(),
       name: tournamentName,
@@ -103,6 +141,7 @@ const TournamentCreator = () => {
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
+      matches,
       createdAt: new Date().toISOString(),
     };
 
@@ -112,7 +151,7 @@ const TournamentCreator = () => {
 
     toast({
       title: "Tournament Created! 🎉",
-      description: `${tournamentName} has been created with ${players.length} players`,
+      description: `${tournamentName} has been created with ${players.length} players and ${matches.length} matches scheduled`,
     });
 
     // Navigate to active tournaments
