@@ -162,6 +162,52 @@ const TournamentView = () => {
     calculateStandings(updatedTournament);
   };
 
+  const getPlayerStats = () => {
+    if (!tournament) return [];
+
+    const playerStats = new Map<string, { 
+      name: string;
+      cups: number;
+      iced: number;
+      defense: number;
+    }>();
+
+    // Initialize stats for all players
+    tournament.players.forEach(player => {
+      playerStats.set(player.name, {
+        name: player.name,
+        cups: 0,
+        iced: 0,
+        defense: 0
+      });
+    });
+
+    // Calculate stats from matches
+    tournament.matches.forEach(match => {
+      // Process team 1 players
+      match.team1Players.forEach(({ player, cups, defense, isIcer }) => {
+        const stats = playerStats.get(player.name);
+        if (stats) {
+          stats.cups += cups || 0;
+          stats.defense += defense || 0;
+          if (isIcer) stats.iced += 1;
+        }
+      });
+
+      // Process team 2 players
+      match.team2Players.forEach(({ player, cups, defense, isIcer }) => {
+        const stats = playerStats.get(player.name);
+        if (stats) {
+          stats.cups += cups || 0;
+          stats.defense += defense || 0;
+          if (isIcer) stats.iced += 1;
+        }
+      });
+    });
+
+    return Array.from(playerStats.values());
+  };
+
   if (!tournament) return <div>Tournament not found</div>;
 
   return (
