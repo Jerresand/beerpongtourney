@@ -17,9 +17,13 @@ interface Team {
 
 const TeamView = ({ matches, onTeamNameUpdate }: TeamViewProps) => {
   const [teams, setTeams] = useState<Team[]>(() => {
+    if (!matches || matches.length === 0) return [];
+    
     const uniqueTeams = new Map<string, Team>();
     
     matches.forEach(match => {
+      if (!match.team1Players || !match.team2Players) return;
+      
       // Process team 1
       const team1Id = match.team1Players.map(p => p.player.name).sort().join('-');
       if (!uniqueTeams.has(team1Id)) {

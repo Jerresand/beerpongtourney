@@ -4,16 +4,10 @@ import Layout from "@/components/dashboard/Layout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy, Shield, Target, Users } from "lucide-react";
-import { Tournament } from "@/types/tournament";
+import { Tournament, Player } from "@/types/tournament";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
-
-interface Player {
-  name: string;
-  totalCups: number;
-  iced: number;
-  defense: number;
-}
 
 interface Standing {
   player: Player;
@@ -51,7 +45,12 @@ const TournamentView = () => {
     // Initialize standings for all players
     tournament.players.forEach(player => {
       playerStats.set(player.name, {
-        player,
+        player: {
+          name: player.name,
+          totalCups: player.totalCups || 0,
+          iced: player.iced || 0,
+          defense: player.defense || 0
+        },
         wins: 0,
         losses: 0,
         winPercentage: 0
