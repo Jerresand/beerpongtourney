@@ -73,7 +73,9 @@ const TournamentView = () => {
     }
   }, [id]);
 
-  const calculateStandings = (tournament: Tournament) => {
+  const calculateStandings = (tournament: Tournament | null) => {
+    if (!tournament) return;
+    
     const playerStats = new Map<string, Standing>();
 
     // Initialize standings for all players
