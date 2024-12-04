@@ -247,7 +247,7 @@ const TournamentView = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {standings.map((standing) => (
+              {standings?.map((standing) => (
                 <TableRow key={standing.player.name}>
                   <TableCell className="text-white">{standing.player.name}</TableCell>
                   <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
@@ -289,7 +289,7 @@ const TournamentView = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getPlayerStats().map((stat) => (
+                {getPlayerStats()?.map((stat) => (
                   <TableRow key={stat.name}>
                     <TableCell className="text-white">{stat.name}</TableCell>
                     <TableCell className="text-dashboard-text">{stat.cups}</TableCell>
@@ -304,12 +304,12 @@ const TournamentView = () => {
           <div className="bg-dashboard-card p-6 rounded-lg">
             <h3 className="text-xl font-bold text-white mb-4">Match Schedule</h3>
             <div className="space-y-4">
-              {tournament.matches.map((match) => (
+              {tournament.matches?.map((match) => (
                 <div key={match.id} className="border border-dashboard-border p-4 rounded-lg">
                   <div className="grid grid-cols-3 gap-4">
                     {/* Team 1 */}
                     <div className="space-y-2">
-                      {match.team1Players.map((player, index) => (
+                      {match.team1Players?.map((player, index) => (
                         <div key={player.player.name} className="space-y-1">
                           <p className="text-white">{player.player.name}</p>
                           <Input
@@ -318,7 +318,7 @@ const TournamentView = () => {
                             placeholder="Cups"
                             value={player.cups || ""}
                             onChange={(e) => {
-                              const newStats = match.team1Players.map((p, i) =>
+                              const newStats = match.team1Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -333,7 +333,9 @@ const TournamentView = () => {
                                       isIcer: p.isIcer,
                                     }
                               );
-                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              }
                             }}
                           />
                           <Input
@@ -342,7 +344,7 @@ const TournamentView = () => {
                             placeholder="Defense"
                             value={player.defense || ""}
                             onChange={(e) => {
-                              const newStats = match.team1Players.map((p, i) =>
+                              const newStats = match.team1Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -357,13 +359,15 @@ const TournamentView = () => {
                                       isIcer: p.isIcer,
                                     }
                               );
-                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              }
                             }}
                           />
                           <Button
                             variant={player.isIcer ? "default" : "outline"}
                             onClick={() => {
-                              const newStats = match.team1Players.map((p, i) =>
+                              const newStats = match.team1Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -378,7 +382,9 @@ const TournamentView = () => {
                                       isIcer: false,
                                     }
                               );
-                              updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 1, match.team1Score, newStats);
+                              }
                             }}
                           >
                             Iced
@@ -396,7 +402,7 @@ const TournamentView = () => {
 
                     {/* Team 2 */}
                     <div className="space-y-2">
-                      {match.team2Players.map((player, index) => (
+                      {match.team2Players?.map((player, index) => (
                         <div key={player.player.name} className="space-y-1">
                           <p className="text-white">{player.player.name}</p>
                           <Input
@@ -405,7 +411,7 @@ const TournamentView = () => {
                             placeholder="Cups"
                             value={player.cups || ""}
                             onChange={(e) => {
-                              const newStats = match.team2Players.map((p, i) =>
+                              const newStats = match.team2Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -420,7 +426,9 @@ const TournamentView = () => {
                                       isIcer: p.isIcer,
                                     }
                               );
-                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              }
                             }}
                           />
                           <Input
@@ -429,7 +437,7 @@ const TournamentView = () => {
                             placeholder="Defense"
                             value={player.defense || ""}
                             onChange={(e) => {
-                              const newStats = match.team2Players.map((p, i) =>
+                              const newStats = match.team2Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -444,13 +452,15 @@ const TournamentView = () => {
                                       isIcer: p.isIcer,
                                     }
                               );
-                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              }
                             }}
                           />
                           <Button
                             variant={player.isIcer ? "default" : "outline"}
                             onClick={() => {
-                              const newStats = match.team2Players.map((p, i) =>
+                              const newStats = match.team2Players?.map((p, i) =>
                                 i === index
                                   ? {
                                       playerId: p.player.name,
@@ -465,7 +475,9 @@ const TournamentView = () => {
                                       isIcer: false,
                                     }
                               );
-                              updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              if (newStats) {
+                                updateMatchScore(match.id, 2, match.team2Score, newStats);
+                              }
                             }}
                           >
                             Iced
