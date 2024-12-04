@@ -74,7 +74,10 @@ const TournamentView = () => {
   }, [id]);
 
   const calculateStandings = (tournament: Tournament | null) => {
-    if (!tournament) return;
+    if (!tournament || !tournament.players || !tournament.matches) {
+      setStandings([]);
+      return;
+    }
     
     const playerStats = new Map<string, Standing>();
 
@@ -90,6 +93,7 @@ const TournamentView = () => {
 
     // Calculate wins and losses
     tournament.matches.forEach(match => {
+      if (!match.team1Players || !match.team2Players) return;
       if (match.team1Score === undefined || match.team2Score === undefined) return;
 
       const team1Won = match.team1Score > match.team2Score;
