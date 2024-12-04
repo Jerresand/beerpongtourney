@@ -2,51 +2,17 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/dashboard/Layout";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Trophy, Shield, Target } from "lucide-react";
+import { Trophy, Shield, Target, Users } from "lucide-react";
+import { Tournament } from "@/types/tournament";
+import MatchSchedule from "@/components/tournament/MatchSchedule";
+import TeamView from "@/components/tournament/TeamView";
 
 interface Player {
   name: string;
   totalCups: number;
   iced: number;
   defense: number;
-}
-
-interface Match {
-  id: string;
-  team1Score: number;
-  team2Score: number;
-  team1Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    isIcer: boolean;
-  }[];
-  team2Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    isIcer: boolean;
-  }[];
-  date: string;
-}
-
-interface Tournament {
-  id: string;
-  name: string;
-  players: Player[];
-  matches: Match[];
-  format: "singles" | "doubles";
-  type: "playoffs" | "regular+playoffs";
 }
 
 interface Standing {
@@ -62,6 +28,7 @@ const TournamentView = () => {
   const { toast } = useToast();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [showStatistics, setShowStatistics] = useState(false);
+  const [showTeams, setShowTeams] = useState(false);
   const [standings, setStandings] = useState<Standing[]>([]);
 
   useEffect(() => {
@@ -74,7 +41,7 @@ const TournamentView = () => {
   }, [id]);
 
   const calculateStandings = (tournament: Tournament | null) => {
-    if (!tournament || !tournament.players || !tournament.matches) {
+    if (!tournament?.players || !tournament?.matches) {
       setStandings([]);
       return;
     }
@@ -168,50 +135,11 @@ const TournamentView = () => {
     calculateStandings(updatedTournament);
   };
 
-  const getPlayerStats = () => {
-    if (!tournament) return [];
-
-    const playerStats = new Map<string, { 
-      name: string;
-      cups: number;
-      iced: number;
-      defense: number;
-    }>();
-
-    // Initialize stats for all players
-    tournament.players.forEach(player => {
-      playerStats.set(player.name, {
-        name: player.name,
-        cups: 0,
-        iced: 0,
-        defense: 0
-      });
-    });
-
-    // Calculate stats from matches
-    tournament.matches.forEach(match => {
-      // Process team 1 players
-      match.team1Players.forEach(({ player, cups, defense, isIcer }) => {
-        const stats = playerStats.get(player.name);
-        if (stats) {
-          stats.cups += cups || 0;
-          stats.defense += defense || 0;
-          if (isIcer) stats.iced += 1;
-        }
-      });
-
-      // Process team 2 players
-      match.team2Players.forEach(({ player, cups, defense, isIcer }) => {
-        const stats = playerStats.get(player.name);
-        if (stats) {
-          stats.cups += cups || 0;
-          stats.defense += defense || 0;
-          if (isIcer) stats.iced += 1;
-        }
-      });
-    });
-
-    return Array.from(playerStats.values());
+  const handleTeamNameUpdate = (teamId: string, newName: string) => {
+    // Store team names in localStorage
+    const teamNames = JSON.parse(localStorage.getItem("tournamentTeamNames") || "{}");
+    teamNames[`${id}-${teamId}`] = newName;
+    localStorage.setItem("tournamentTeamNames", JSON.stringify(teamNames));
   };
 
   if (!tournament) return <div>Tournament not found</div>;
@@ -226,270 +154,64 @@ const TournamentView = () => {
               {tournament.format} - {tournament.type}
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowStatistics(!showStatistics)}
-          >
-            {showStatistics ? "Show Matches" : "Show Statistics"}
-          </Button>
+          <div className="flex gap-2">
+            {tournament.format === "doubles" && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowTeams(!showTeams);
+                  setShowStatistics(false);
+                }}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Teams
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowStatistics(!showStatistics);
+                setShowTeams(false);
+              }}
+            >
+              {showStatistics ? "Show Matches" : "Show Statistics"}
+            </Button>
+          </div>
         </div>
 
-        {/* Standings Table */}
-        <div className="bg-dashboard-card p-6 rounded-lg">
-          <h3 className="text-xl font-bold text-white mb-4">Standings</h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Player</TableHead>
-                <TableHead>W</TableHead>
-                <TableHead>L</TableHead>
-                <TableHead>Win %</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {standings?.map((standing) => (
-                <TableRow key={standing.player.name}>
-                  <TableCell className="text-white">{standing.player.name}</TableCell>
-                  <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
-                  <TableCell className="text-dashboard-text">{standing.losses}</TableCell>
-                  <TableCell className="text-dashboard-text">
-                    {(standing.winPercentage * 100).toFixed(1)}%
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {showStatistics ? (
+        {showTeams ? (
+          <TeamView 
+            matches={tournament.matches} 
+            onTeamNameUpdate={handleTeamNameUpdate}
+          />
+        ) : showStatistics ? (
           <div className="bg-dashboard-card p-6 rounded-lg">
-            <h3 className="text-xl font-bold text-white mb-4">Player Statistics</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Standings</h3>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Player</TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      Cups
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-4 w-4" />
-                      Iced
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Defense
-                    </div>
-                  </TableHead>
+                  <TableHead>W</TableHead>
+                  <TableHead>L</TableHead>
+                  <TableHead>Win %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getPlayerStats()?.map((stat) => (
-                  <TableRow key={stat.name}>
-                    <TableCell className="text-white">{stat.name}</TableCell>
-                    <TableCell className="text-dashboard-text">{stat.cups}</TableCell>
-                    <TableCell className="text-dashboard-text">{stat.iced}</TableCell>
-                    <TableCell className="text-dashboard-text">{stat.defense}</TableCell>
+                {standings?.map((standing) => (
+                  <TableRow key={standing.player.name}>
+                    <TableCell className="text-white">{standing.player.name}</TableCell>
+                    <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
+                    <TableCell className="text-dashboard-text">{standing.losses}</TableCell>
+                    <TableCell className="text-dashboard-text">
+                      {(standing.winPercentage * 100).toFixed(1)}%
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         ) : (
-          <div className="bg-dashboard-card p-6 rounded-lg">
-            <h3 className="text-xl font-bold text-white mb-4">Match Schedule</h3>
-            <div className="space-y-4">
-              {tournament.matches?.map((match) => (
-                <div key={match.id} className="border border-dashboard-border p-4 rounded-lg">
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Team 1 */}
-                    <div className="space-y-2">
-                      {match.team1Players?.map((player, index) => (
-                        <div key={player.player.name} className="space-y-1">
-                          <p className="text-white">{player.player.name}</p>
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="Cups"
-                            value={player.cups || ""}
-                            onChange={(e) => {
-                              const newStats = match.team1Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: parseInt(e.target.value) || 0,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 1, match.team1Score, newStats);
-                              }
-                            }}
-                          />
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="Defense"
-                            value={player.defense || ""}
-                            onChange={(e) => {
-                              const newStats = match.team1Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: parseInt(e.target.value) || 0,
-                                      isIcer: p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 1, match.team1Score, newStats);
-                              }
-                            }}
-                          />
-                          <Button
-                            variant={player.isIcer ? "default" : "outline"}
-                            onClick={() => {
-                              const newStats = match.team1Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: !p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: false,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 1, match.team1Score, newStats);
-                              }
-                            }}
-                          >
-                            Iced
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Score */}
-                    <div className="flex items-center justify-center text-2xl text-white">
-                      <span>{match.team1Score || 0}</span>
-                      <span className="mx-2">-</span>
-                      <span>{match.team2Score || 0}</span>
-                    </div>
-
-                    {/* Team 2 */}
-                    <div className="space-y-2">
-                      {match.team2Players?.map((player, index) => (
-                        <div key={player.player.name} className="space-y-1">
-                          <p className="text-white">{player.player.name}</p>
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="Cups"
-                            value={player.cups || ""}
-                            onChange={(e) => {
-                              const newStats = match.team2Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: parseInt(e.target.value) || 0,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 2, match.team2Score, newStats);
-                              }
-                            }}
-                          />
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="Defense"
-                            value={player.defense || ""}
-                            onChange={(e) => {
-                              const newStats = match.team2Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: parseInt(e.target.value) || 0,
-                                      isIcer: p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: p.isIcer,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 2, match.team2Score, newStats);
-                              }
-                            }}
-                          />
-                          <Button
-                            variant={player.isIcer ? "default" : "outline"}
-                            onClick={() => {
-                              const newStats = match.team2Players?.map((p, i) =>
-                                i === index
-                                  ? {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: !p.isIcer,
-                                    }
-                                  : {
-                                      playerId: p.player.name,
-                                      cups: p.cups,
-                                      defense: p.defense,
-                                      isIcer: false,
-                                    }
-                              );
-                              if (newStats) {
-                                updateMatchScore(match.id, 2, match.team2Score, newStats);
-                              }
-                            }}
-                          >
-                            Iced
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <MatchSchedule matches={tournament.matches} />
         )}
       </div>
     </Layout>
