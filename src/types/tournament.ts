@@ -21,14 +21,15 @@ export interface Match {
     defense: number;
     isIcer: boolean;
   }[];
-  date: string;
 }
 
 export interface Tournament {
   id: string;
   name: string;
+  date: string;
   players: Player[];
-  matches: Match[];
+  regularMatches: Match[];
+  playoffMatches: Match[];
   format: "singles" | "doubles";
   type: "playoffs" | "regular+playoffs";
 }

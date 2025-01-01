@@ -17,7 +17,7 @@ const Tournament = () => {
     <Layout>
       <div className="space-y-8">
         <div>
-          <h2 className="text-3xl font-bold text-white">Beer Pong Tournament 🏆</h2>
+          <h2 className="text-3xl font-bold text-white">Beerpong Tournament 🏆</h2>
           <p className="text-dashboard-text mt-2">Create and manage your tournaments.</p>
         </div>
         <TournamentCreator />

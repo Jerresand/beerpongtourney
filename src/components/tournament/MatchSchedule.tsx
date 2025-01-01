@@ -35,9 +35,7 @@ const MatchSchedule = ({ matches }: MatchScheduleProps) => {
               <TableCell className="text-white">
                 {formatTeamName(match.team2Players)}
               </TableCell>
-              <TableCell className="text-dashboard-text">
-                {new Date(match.date).toLocaleDateString()}
-              </TableCell>
+             
             </TableRow>
           ))}
         </TableBody>

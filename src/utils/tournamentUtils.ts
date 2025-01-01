@@ -7,8 +7,8 @@ export interface Standing {
   winPercentage: number;
 }
 
-export const calculateStandings = (tournament: Tournament | null): Standing[] => {
-  if (!tournament?.players || !tournament?.matches) {
+export const calculateRegularStandings = (tournament: Tournament | null): Standing[] => {
+  if (!tournament?.players || !tournament?.regularMatches) {
     return [];
   }
   
@@ -30,9 +30,11 @@ export const calculateStandings = (tournament: Tournament | null): Standing[] =>
   });
 
   // Calculate wins and losses
-  tournament.matches.forEach(match => {
-    if (!match.team1Players || !match.team2Players) return;
-    if (match.team1Score === undefined || match.team2Score === undefined) return;
+  tournament.regularMatches.forEach(match => {
+    if (!match.team1Players || !match.team2Players) 
+    return;
+    if (match.team1Score === undefined || match.team2Score === undefined) 
+    return;
 
     const team1Won = match.team1Score > match.team2Score;
     

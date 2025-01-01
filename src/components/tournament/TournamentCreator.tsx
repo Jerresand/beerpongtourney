@@ -73,38 +73,80 @@ const TournamentCreator = () => {
     const matches: Match[] = [];
     const numPlayers = players.length;
     
-    // Generate regular season matches
-    for (let round = 0; round < matchesPerTeam; round++) {
-      const roundMatches: Match[] = [];
-      const availablePlayers = [...players];
-
-      while (availablePlayers.length > 1) {
-        const team1Player = availablePlayers.shift()!;
-        const team2Player = availablePlayers.shift()!;
-
-        roundMatches.push({
-          id: crypto.randomUUID(),
-          team1Players: [team1Player],
-          team2Players: [team2Player],
-          date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-          isPlayoff: false,
-          round: round + 1
-        });
+    if (format === "doubles") {
+      // Handle doubles format
+      const teams: Player[][] = [];
+      // Create teams of 2 players
+      for (let i = 0; i < players.length; i += 2) {
+        teams.push([players[i], players[i + 1]]);
       }
+      
+      // Generate matches between teams
+      for (let round = 0; round < matchesPerTeam; round++) {
+        const roundMatches: Match[] = [];
+        const availableTeams = [...teams];
 
-      // If there's a player left without an opponent (bye round)
-      if (availablePlayers.length === 1) {
-        roundMatches.push({
-          id: crypto.randomUUID(),
-          team1Players: [availablePlayers[0]],
-          team2Players: [], // Empty array indicates a bye
-          date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-          isPlayoff: false,
-          round: round + 1
-        });
+        while (availableTeams.length > 1) {
+          const team1 = availableTeams.shift()!;
+          const team2 = availableTeams.shift()!;
+
+          roundMatches.push({
+            id: crypto.randomUUID(),
+            team1Players: team1,
+            team2Players: team2,
+            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+            isPlayoff: false,
+            round: round + 1
+          });
+        }
+
+        // Handle bye round for odd number of teams
+        if (availableTeams.length === 1) {
+          roundMatches.push({
+            id: crypto.randomUUID(),
+            team1Players: availableTeams[0],
+            team2Players: [], // Bye round
+            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+            isPlayoff: false,
+            round: round + 1
+          });
+        }
+
+        matches.push(...roundMatches);
       }
+    } else {
+      // Existing singles format logic
+      for (let round = 0; round < matchesPerTeam; round++) {
+        const roundMatches: Match[] = [];
+        const availablePlayers = [...players];
 
-      matches.push(...roundMatches);
+        while (availablePlayers.length > 1) {
+          const team1Player = availablePlayers.shift()!;
+          const team2Player = availablePlayers.shift()!;
+
+          roundMatches.push({
+            id: crypto.randomUUID(),
+            team1Players: [team1Player],
+            team2Players: [team2Player],
+            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+            isPlayoff: false,
+            round: round + 1
+          });
+        }
+
+        if (availablePlayers.length === 1) {
+          roundMatches.push({
+            id: crypto.randomUUID(),
+            team1Players: [availablePlayers[0]],
+            team2Players: [], // Bye round
+            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
+            isPlayoff: false,
+            round: round + 1
+          });
+        }
+
+        matches.push(...roundMatches);
+      }
     }
 
     return matches;
