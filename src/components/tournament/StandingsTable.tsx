@@ -20,12 +20,12 @@ const StandingsTable = ({ standings }: StandingsTableProps) => {
         </TableHeader>
         <TableBody>
           {standings?.map((standing) => (
-            <TableRow key={standing.player.name}>
-              <TableCell className="text-white">{standing.player.name}</TableCell>
+            <TableRow key={standing.name}>
+              <TableCell className="text-white">{standing.name}</TableCell>
               <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
               <TableCell className="text-dashboard-text">{standing.losses}</TableCell>
               <TableCell className="text-dashboard-text">
-                {(standing.winPercentage * 100).toFixed(1)}%
+                {standing.winPercentage.toFixed(1)}%
               </TableCell>
             </TableRow>
           ))}

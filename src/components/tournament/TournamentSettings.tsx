@@ -24,39 +24,46 @@ const TournamentSettings = ({
   setMatchesPerTeam,
 }: TournamentSettingsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Select value={format} onValueChange={(value: "singles" | "doubles") => setFormat(value)}>
-        <SelectTrigger className="bg-dashboard-background text-white">
-          <SelectValue placeholder="Format" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="singles">Singles</SelectItem>
-          <SelectItem value="doubles">Doubles</SelectItem>
-        </SelectContent>
-      </Select>
+    <div className="space-y-4">
+      <div>
+        <label className="text-white text-sm font-medium">Format</label>
+        <Select value={format} onValueChange={setFormat}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="singles">Singles</SelectItem>
+            <SelectItem value="doubles">Doubles</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={tournamentType} onValueChange={(value: "playoffs" | "regular+playoffs") => setTournamentType(value)}>
-        <SelectTrigger className="bg-dashboard-background text-white">
-          <SelectValue placeholder="Tournament Type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="playoffs">Playoffs Only</SelectItem>
-          <SelectItem value="regular+playoffs">Regular Season + Playoffs</SelectItem>
-        </SelectContent>
-      </Select>
+      <div>
+        <label className="text-white text-sm font-medium">Tournament Type</label>
+        <Select value={tournamentType} onValueChange={setTournamentType}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="playoffs">Playoffs Only</SelectItem>
+            <SelectItem value="regular+playoffs">Regular Season + Playoffs</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={matchesPerTeam} onValueChange={setMatchesPerTeam}>
-        <SelectTrigger className="bg-dashboard-background text-white">
-          <SelectValue placeholder="Matches per Team" />
-        </SelectTrigger>
-        <SelectContent>
-          {[1, 2, 3, 4, 5].map((num) => (
-            <SelectItem key={num} value={num.toString()}>
-              {num} {num === 1 ? "Match" : "Matches"} per Team
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div>
+        <label className="text-white text-sm font-medium">Face Each Team</label>
+        <Select value={matchesPerTeam} onValueChange={setMatchesPerTeam}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">Once</SelectItem>
+            <SelectItem value="2">Twice</SelectItem>
+            <SelectItem value="3">Three Times</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 };

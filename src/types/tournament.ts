@@ -5,7 +5,8 @@ export interface Player {
   defense?: number;
 }
 
-export interface Match {
+// Base match type
+export interface BaseMatch {
   id: string;
   team1Score: number;
   team2Score: number;
@@ -23,13 +24,29 @@ export interface Match {
   }[];
 }
 
+// Regular season match
+export interface RegularMatch extends BaseMatch {
+  isPlayoff: false;
+  round: number;
+}
+
+// Playoff match
+export interface PlayoffMatch extends BaseMatch {
+  isPlayoff: true;
+  series: number;
+}
+
+export type Match = RegularMatch | PlayoffMatch;
+
 export interface Tournament {
   id: string;
   name: string;
-  date: string;
   players: Player[];
-  regularMatches: Match[];
-  playoffMatches: Match[];
   format: "singles" | "doubles";
+  matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
+  regularMatches: RegularMatch[];
+  playoffMatches: PlayoffMatch[];
+  currentPhase: "regular" | "playoffs";
+  createdAt: string;
 }

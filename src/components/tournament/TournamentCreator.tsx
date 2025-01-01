@@ -5,33 +5,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import TournamentHeader from "./TournamentHeader";
 import TournamentSettings from "./TournamentSettings";
 import PlayerManagement from "./PlayerManagement";
-
-interface Player {
-  name: string;
-}
-
-interface Match {
-  id: string;
-  team1Players: Player[];
-  team2Players: Player[];
-  team1Score?: number;
-  team2Score?: number;
-  date: string;
-  isPlayoff: boolean;
-  round?: number;
-  series?: number;
-}
-
-interface Tournament {
-  id: string;
-  name: string;
-  players: Player[];
-  format: "singles" | "doubles";
-  matchesPerTeam: number;
-  type: "playoffs" | "regular+playoffs";
-  matches: Match[];
-  createdAt: string;
-}
+import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
+import { Player, Tournament, RegularMatch } from "@/types/tournament";
 
 const TournamentCreator = () => {
   const [tournamentName, setTournamentName] = useState("");
@@ -52,7 +27,7 @@ const TournamentCreator = () => {
       const groups = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key) {
+        if (key && key !== 'activeTournaments') {
           const value = localStorage.getItem(key);
           if (value) {
             groups.push({ name: key, players: JSON.parse(value) });
@@ -69,89 +44,6 @@ const TournamentCreator = () => {
     }
   }, [location.state]);
 
-  const generateSchedule = (players: Player[], matchesPerTeam: number): Match[] => {
-    const matches: Match[] = [];
-    const numPlayers = players.length;
-    
-    if (format === "doubles") {
-      // Handle doubles format
-      const teams: Player[][] = [];
-      // Create teams of 2 players
-      for (let i = 0; i < players.length; i += 2) {
-        teams.push([players[i], players[i + 1]]);
-      }
-      
-      // Generate matches between teams
-      for (let round = 0; round < matchesPerTeam; round++) {
-        const roundMatches: Match[] = [];
-        const availableTeams = [...teams];
-
-        while (availableTeams.length > 1) {
-          const team1 = availableTeams.shift()!;
-          const team2 = availableTeams.shift()!;
-
-          roundMatches.push({
-            id: crypto.randomUUID(),
-            team1Players: team1,
-            team2Players: team2,
-            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-            isPlayoff: false,
-            round: round + 1
-          });
-        }
-
-        // Handle bye round for odd number of teams
-        if (availableTeams.length === 1) {
-          roundMatches.push({
-            id: crypto.randomUUID(),
-            team1Players: availableTeams[0],
-            team2Players: [], // Bye round
-            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-            isPlayoff: false,
-            round: round + 1
-          });
-        }
-
-        matches.push(...roundMatches);
-      }
-    } else {
-      // Existing singles format logic
-      for (let round = 0; round < matchesPerTeam; round++) {
-        const roundMatches: Match[] = [];
-        const availablePlayers = [...players];
-
-        while (availablePlayers.length > 1) {
-          const team1Player = availablePlayers.shift()!;
-          const team2Player = availablePlayers.shift()!;
-
-          roundMatches.push({
-            id: crypto.randomUUID(),
-            team1Players: [team1Player],
-            team2Players: [team2Player],
-            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-            isPlayoff: false,
-            round: round + 1
-          });
-        }
-
-        if (availablePlayers.length === 1) {
-          roundMatches.push({
-            id: crypto.randomUUID(),
-            team1Players: [availablePlayers[0]],
-            team2Players: [], // Bye round
-            date: new Date(Date.now() + matches.length * 24 * 60 * 60 * 1000).toISOString(),
-            isPlayoff: false,
-            round: round + 1
-          });
-        }
-
-        matches.push(...roundMatches);
-      }
-    }
-
-    return matches;
-  };
-
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
       setPlayers([...players, { name: newPlayerName.trim() }]);
@@ -160,15 +52,12 @@ const TournamentCreator = () => {
   };
 
   const handleRemovePlayer = (index: number) => {
-    const newPlayers = [...players];
-    newPlayers.splice(index, 1);
-    setPlayers(newPlayers);
+    setPlayers(players.filter((_, i) => i !== index));
   };
 
   const handleGroupSelect = (groupName: string) => {
     const group = groups.find(g => g.name === groupName);
     if (group) {
-      // Replace current players with group players instead of adding them
       setPlayers(group.players);
       setSelectedGroup(groupName);
     }
@@ -184,17 +73,6 @@ const TournamentCreator = () => {
       return;
     }
 
-    if (format === "doubles" && players.length % 2 !== 0) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "You need an even number of players for doubles",
-      });
-      return;
-    }
-
-    const matches = generateSchedule(players, parseInt(matchesPerTeam));
-
     const tournament: Tournament = {
       id: crypto.randomUUID(),
       name: tournamentName,
@@ -202,7 +80,9 @@ const TournamentCreator = () => {
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
-      matches,
+      regularMatches: [],
+      playoffMatches: [],
+      currentPhase: "regular",
       createdAt: new Date().toISOString(),
     };
 
@@ -212,10 +92,9 @@ const TournamentCreator = () => {
 
     toast({
       title: "Tournament Created! 🎉",
-      description: `${tournamentName} has been created with ${players.length} players and ${matches.length} matches scheduled`,
+      description: "Head to Active Tournaments to start the regular season",
     });
 
-    // Navigate to active tournaments
     navigate('/active-tournaments');
   };
 
@@ -250,9 +129,9 @@ const TournamentCreator = () => {
 
       <Button
         onClick={handleCreateTournament}
-        className="w-full bg-dashboard-accent hover:bg-dashboard-accent/90"
+        className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105"
       >
-        Create Tournament
+        Create Tournament 🏆
       </Button>
     </div>
   );
