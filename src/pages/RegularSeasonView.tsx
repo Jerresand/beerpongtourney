@@ -3,19 +3,55 @@ import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { Tournament, Match, RegularMatch } from "@/types/tournament";
 import { calculateStandings } from "@/utils/tournamentUtils";
+import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
 import StandingsTable from "@/components/tournament/Standings";
+import { useToast } from "@/components/ui/use-toast";
 
 interface RegularSeasonViewProps {
   tournament: Tournament;
 }
 
 const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
+  const { toast } = useToast();
   const [showStandings, setShowStandings] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
   const [currentTournament, setCurrentTournament] = useState<Tournament>(tournament);
   const standings = calculateStandings(currentTournament);
+
+  console.log('RegularSeasonView - Current Tournament:', currentTournament);
+  console.log('RegularSeasonView - Regular Matches:', currentTournament.regularMatches);
+
+  const handleGenerateSchedule = () => {
+    const matchesPerCycle = currentTournament.players.length - 1;
+    const cyclesNeeded = Math.ceil(currentTournament.matchesPerTeam / matchesPerCycle);
+
+    const regularMatches = generateRegularSeasonSchedule(
+      currentTournament.players,
+      cyclesNeeded,
+      currentTournament.format
+    );
+
+    const updatedTournament = {
+      ...currentTournament,
+      regularMatches
+    };
+
+    // Update localStorage
+    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournaments = tournaments.map((t: Tournament) =>
+      t.id === tournament.id ? updatedTournament : t
+    );
+    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
+
+    setCurrentTournament(updatedTournament);
+
+    toast({
+      title: "Schedule Generated! 🎉",
+      description: `${regularMatches.length} matches have been scheduled`,
+    });
+  };
 
   const handleTeamNameUpdate = (teamId: string, newName: string) => {
     const teamNames = JSON.parse(localStorage.getItem("tournamentTeamNames") || "{}");
@@ -24,7 +60,6 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
   };
 
   const handleMatchUpdate = (updatedMatch: Match) => {
-    // Ensure we're working with RegularMatch type
     const updatedRegularMatch = updatedMatch as RegularMatch;
     
     const updatedMatches = currentTournament.regularMatches.map(match =>
@@ -36,10 +71,8 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
       regularMatches: updatedMatches
     };
 
-    // Update local state
     setCurrentTournament(updatedTournament);
 
-    // Update localStorage
     const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
     const updatedTournaments = tournaments.map((t: Tournament) =>
       t.id === tournament.id ? updatedTournament : t
@@ -50,7 +83,7 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
   return (
     <div>
       <div className="flex justify-end gap-2 mb-4">
-        {tournament.format === "doubles" && (
+        {currentTournament.format === "doubles" && (
           <Button
             variant="outline"
             onClick={() => {
@@ -72,6 +105,16 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
           {showStandings ? "Show Matches" : "Standings"}
         </Button>
       </div>
+
+      {(!currentTournament.regularMatches || currentTournament.regularMatches.length === 0) && (
+        <Button
+          variant="default"
+          className="w-full h-24 text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105 animate-pulse mb-4"
+          onClick={handleGenerateSchedule}
+        >
+          Generate Regular Season Schedule 🎉
+        </Button>
+      )}
 
       {showTeams ? (
         <TeamView 
