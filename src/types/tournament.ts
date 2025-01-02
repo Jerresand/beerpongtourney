@@ -38,6 +38,11 @@ export interface PlayoffMatch extends BaseMatch {
 
 export type Match = RegularMatch | PlayoffMatch;
 
+export interface Team {
+  name: string;
+  players: Player[];
+}
+
 export interface Tournament {
   id: string;
   name: string;
@@ -49,4 +54,9 @@ export interface Tournament {
   playoffMatches: PlayoffMatch[];
   currentPhase: "regular" | "playoffs";
   createdAt: string;
+  teams?: Team[];
 }
+
+export const isRegularMatch = (match: Match): match is RegularMatch => !match.isPlayoff;
+export const isPlayoffMatch = (match: Match): match is PlayoffMatch => match.isPlayoff;
+export const isPlayoffPhase = (tournament: Tournament) => tournament.currentPhase === "playoffs";

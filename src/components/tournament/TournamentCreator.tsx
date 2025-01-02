@@ -6,7 +6,9 @@ import TournamentHeader from "./TournamentHeader";
 import TournamentSettings from "./TournamentSettings";
 import PlayerManagement from "./PlayerManagement";
 import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
-import { Player, Tournament, RegularMatch } from "@/types/tournament";
+import { Player, Tournament, RegularMatch, Team } from "@/types/tournament";
+import { validateTournament } from '@/utils/tournamentUtils';
+import DoublesTeamCreator from './DoublesTeamCreator';
 
 const TournamentCreator = () => {
   const [tournamentName, setTournamentName] = useState("");
@@ -17,6 +19,7 @@ const TournamentCreator = () => {
   const [tournamentType, setTournamentType] = useState<"playoffs" | "regular+playoffs">("regular+playoffs");
   const [groups, setGroups] = useState<{ name: string; players: Player[] }[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [showTeamCreator, setShowTeamCreator] = useState(false);
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,27 +66,40 @@ const TournamentCreator = () => {
     }
   };
 
-  const handleCreateTournament = () => {
-    if (players.length < 4) {
+  const handleGenerateSchedule = () => {
+    const validation = validateTournament(players, format);
+    if (!validation.isValid) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "You need at least 4 players to create a tournament",
+        description: validation.error
       });
       return;
     }
 
+    if (format === "doubles") {
+      setShowTeamCreator(true);
+      return;
+    }
+
+    const regularMatches = generateRegularSeasonSchedule(
+      players,
+      parseInt(matchesPerTeam),
+      format
+    );
+
     const tournament: Tournament = {
       id: crypto.randomUUID(),
-      name: tournamentName,
+      name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
       players,
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
-      regularMatches: [],
+      regularMatches,
       playoffMatches: [],
       currentPhase: "regular",
       createdAt: new Date().toISOString(),
+      teams: generateTeams(players, format)
     };
 
     // Save to localStorage
@@ -97,6 +113,63 @@ const TournamentCreator = () => {
 
     navigate('/active-tournaments');
   };
+
+  const handleTeamsCreated = (teams: Team[]) => {
+    const regularMatches = generateRegularSeasonSchedule(
+      players,
+      parseInt(matchesPerTeam),
+      format
+    );
+
+    const tournament: Tournament = {
+      id: crypto.randomUUID(),
+      name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
+      players,
+      format,
+      matchesPerTeam: parseInt(matchesPerTeam),
+      type: tournamentType,
+      regularMatches,
+      playoffMatches: [],
+      currentPhase: "regular",
+      createdAt: new Date().toISOString(),
+      teams
+    };
+
+    // Save to localStorage
+    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
+
+    toast({
+      title: "Tournament Created! 🎉",
+      description: "Head to Active Tournaments to start the regular season",
+    });
+
+    navigate('/active-tournaments');
+  };
+
+  // Helper function to generate teams for doubles
+  const generateTeams = (players: Player[], format: "singles" | "doubles"): { name: string, players: Player[] }[] => {
+    const teams = [];
+    if (format === "doubles") {
+      for (let i = 0; i < players.length; i += 2) {
+        const teamName = `${players[i].name} & ${players[i + 1].name}`;
+        teams.push({
+          name: teamName,
+          players: [players[i], players[i + 1]]
+        });
+      }
+    }
+    return teams;
+  };
+
+  if (showTeamCreator && format === "doubles") {
+    return (
+      <DoublesTeamCreator
+        players={players}
+        onTeamsCreated={handleTeamsCreated}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 bg-dashboard-card p-6 rounded-lg">
@@ -128,7 +201,7 @@ const TournamentCreator = () => {
       </div>
 
       <Button
-        onClick={handleCreateTournament}
+        onClick={handleGenerateSchedule}
         className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105"
       >
         Create Tournament 🏆

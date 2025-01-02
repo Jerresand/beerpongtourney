@@ -1,4 +1,4 @@
-import { Tournament, Player, Match } from "@/types/tournament";
+import { Tournament, Player, Match, Team } from "@/types/tournament";
 
 export interface Standing {
   name: string;
@@ -11,13 +11,11 @@ export interface Standing {
 }
 
 export const calculateRegularStandings = (tournament: Tournament | null): Standing[] => {
-  if (!tournament?.players || !tournament?.regularMatches) {
-    return [];
-  }
+  if (!tournament?.players || !tournament?.regularMatches) return [];
   
   const playerStats = new Map<string, Standing>();
 
-  // Initialize standings for all players
+  // Initialize all players with 0 stats
   tournament.players.forEach(player => {
     playerStats.set(player.name, {
       name: player.name,
@@ -30,50 +28,83 @@ export const calculateRegularStandings = (tournament: Tournament | null): Standi
     });
   });
 
-  // Calculate wins and losses
+  // For each match, give wins/losses based on score
   tournament.regularMatches.forEach(match => {
-    if (!match.team1Players || !match.team2Players) 
-      return;
-    if (match.team1Score === undefined || match.team2Score === undefined) 
-      return;
-
-    const team1Won = match.team1Score > match.team2Score;
-    
-    // Process team 1 players
-    match.team1Players.forEach(({ player }) => {
-      const stats = playerStats.get(player.name);
-      if (stats) {
+    if (match.team1Score > match.team2Score) {
+      match.team1Players.forEach(p => {
+        const stats = playerStats.get(p.player.name)!;
+        stats.wins++;
         stats.matchesPlayed++;
-        if (team1Won) {
-          stats.wins++;
-        } else {
-          stats.losses++;
-        }
-        stats.points += match.team1Score;
-        stats.pointsAgainst += match.team2Score;
-        stats.winPercentage = (stats.wins / stats.matchesPlayed) * 100;
-      }
-    });
-
-    // Process team 2 players
-    match.team2Players.forEach(({ player }) => {
-      const stats = playerStats.get(player.name);
-      if (stats) {
+      });
+      match.team2Players.forEach(p => {
+        const stats = playerStats.get(p.player.name)!;
+        stats.losses++;
         stats.matchesPlayed++;
-        if (!team1Won) {
-          stats.wins++;
-        } else {
-          stats.losses++;
-        }
-        stats.points += match.team2Score;
-        stats.pointsAgainst += match.team1Score;
-        stats.winPercentage = (stats.wins / stats.matchesPlayed) * 100;
-      }
-    });
+      });
+    } else if (match.team2Score > match.team1Score) {
+      match.team2Players.forEach(p => {
+        const stats = playerStats.get(p.player.name)!;
+        stats.wins++;
+        stats.matchesPlayed++;
+      });
+      match.team1Players.forEach(p => {
+        const stats = playerStats.get(p.player.name)!;
+        stats.losses++;
+        stats.matchesPlayed++;
+      });
+    }
   });
 
+  // Calculate win percentages and convert to array
   return Array.from(playerStats.values())
-    .sort((a, b) => b.winPercentage - a.winPercentage);
+    .map(stats => ({
+      ...stats,
+      winPercentage: stats.matchesPlayed > 0 
+        ? Math.round((stats.wins / stats.matchesPlayed) * 100) 
+        : 0
+    }))
+    .sort((a, b) => 
+      // Sort by win percentage first, then by total points if tied
+      b.winPercentage - a.winPercentage || b.points - a.points
+    );
+};
+
+export const calculatePlayoffStandings = (tournament: Tournament | null): Standing[] => {
+  return [];  // Return empty array for now
 };
 
 export const calculateStandings = calculateRegularStandings;
+
+export const generateTeams = (players: Player[], format: "singles" | "doubles"): Team[] | undefined => {
+  if (format === "singles") return undefined;
+  
+  const teams: Team[] = [];
+  for (let i = 0; i < players.length; i += 2) {
+    teams.push({
+      name: `${players[i].name} & ${players[i + 1].name}`,
+      players: [players[i], players[i + 1]]
+    });
+  }
+  return teams;
+};
+
+export const validateTournament = (players: Player[], format: "singles" | "doubles"): { isValid: boolean; error?: string } => {
+  if (players.length < 2) {
+    return { isValid: false, error: "You need at least 2 players to create a tournament" };
+  }
+
+  if (players.length > 256) {
+    return { isValid: false, error: "Maximum 256 players allowed in a tournament" };
+  }
+
+  if (format === "doubles") {
+    if (players.length % 2 !== 0) {
+      return { isValid: false, error: "Doubles tournaments require an even number of players" };
+    }
+    if (players.length < 4) {
+      return { isValid: false, error: "Doubles tournaments require at least 4 players (2 teams)" };
+    }
+  }
+
+  return { isValid: true };
+};

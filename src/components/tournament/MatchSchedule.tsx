@@ -9,9 +9,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { CalendarDays } from "lucide-react";
+import { Pencil } from "lucide-react";
 import MatchView from './MatchView';
 import { useToast } from "@/components/ui/use-toast";
+import { isRegularMatch, isPlayoffMatch } from '@/types/tournament';
 
 interface MatchScheduleProps {
   matches: Match[];
@@ -36,7 +37,7 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
   };
 
   const roundMatches = matches.filter(match => 
-    'round' in match ? match.round === selectedRound : match.series === selectedRound
+    isRegularMatch(match) ? match.round === selectedRound : match.series === selectedRound
   );
 
   const handleMatchUpdate = (updatedMatch: Match) => {
@@ -112,7 +113,7 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
                   onClick={() => setSelectedMatch(match)}
                   className="hover:bg-dashboard-background"
                 >
-                  <CalendarDays className="h-5 w-5 text-dashboard-text" />
+                  <Pencil className="h-5 w-5 text-dashboard-text" />
                 </Button>
               </TableCell>
             </TableRow>

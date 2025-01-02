@@ -5,6 +5,8 @@ import { Tournament } from "@/types/tournament";
 import RegularSeasonView from "./RegularSeasonView";
 import PlayoffView from "./PlayoffView";
 
+const isPlayoffPhase = (tournament: Tournament) => tournament.currentPhase === "playoffs";
+
 const TournamentView = () => {
   const { id } = useParams();
   const [tournament, setTournament] = useState<Tournament | null>(null);

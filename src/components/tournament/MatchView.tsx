@@ -35,7 +35,19 @@ const MatchView = ({ match, isOpen, onClose, onSave }: MatchViewProps) => {
     }))
   );
 
+  const isSingles = match.team1Players.length === 1 && match.team2Players.length === 1;
+
   const validateAndSave = () => {
+    // Prevent ties
+    if (team1Score === team2Score) {
+      toast({
+        title: "Invalid Score",
+        description: "Games cannot end in a tie. Please adjust the score.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate total cups matches team score
     const team1TotalCups = team1Stats.reduce((sum, stat) => sum + stat.cups, 0);
     const team2TotalCups = team2Stats.reduce((sum, stat) => sum + stat.cups, 0);
@@ -91,7 +103,12 @@ const MatchView = ({ match, isOpen, onClose, onSave }: MatchViewProps) => {
           <TeamStatsForm
             teamName="Team 1"
             score={team1Score}
-            onScoreChange={setTeam1Score}
+            onScoreChange={(newScore) => {
+              setTeam1Score(newScore);
+              if (isSingles) {
+                setTeam1Stats([{ ...team1Stats[0], cups: newScore }]);
+              }
+            }}
             players={match.team1Players}
             playerStats={team1Stats}
             onPlayerStatsChange={(playerIndex, field, value) => {
@@ -103,7 +120,12 @@ const MatchView = ({ match, isOpen, onClose, onSave }: MatchViewProps) => {
           <TeamStatsForm
             teamName="Team 2"
             score={team2Score}
-            onScoreChange={setTeam2Score}
+            onScoreChange={(newScore) => {
+              setTeam2Score(newScore);
+              if (isSingles) {
+                setTeam2Stats([{ ...team2Stats[0], cups: newScore }]);
+              }
+            }}
             players={match.team2Players}
             playerStats={team2Stats}
             onPlayerStatsChange={(playerIndex, field, value) => {
