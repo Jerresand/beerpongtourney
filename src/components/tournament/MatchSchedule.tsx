@@ -11,12 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
 import MatchView from './MatchView';
+import { useToast } from "@/components/ui/use-toast";
 
 interface MatchScheduleProps {
   matches: Match[];
+  onMatchUpdate?: (updatedMatch: Match) => void;
 }
 
-const MatchSchedule = ({ matches }: MatchScheduleProps) => {
+const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
+  const { toast } = useToast();
   const [selectedRound, setSelectedRound] = useState<number>(1);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
@@ -39,9 +42,13 @@ const MatchSchedule = ({ matches }: MatchScheduleProps) => {
   );
 
   const handleMatchUpdate = (updatedMatch: Match) => {
-    // Here you would typically update the match in your tournament state
-    // For now, we'll just log it
-    console.log('Match updated:', updatedMatch);
+    if (onMatchUpdate) {
+      onMatchUpdate(updatedMatch);
+      toast({
+        title: "Match Updated",
+        description: "The match statistics have been saved successfully.",
+      });
+    }
   };
 
   // If there are no matches, show a message
