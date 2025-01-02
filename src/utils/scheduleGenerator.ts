@@ -12,7 +12,7 @@ export const generateRegularSeasonSchedule = (
   // Convert players into teams based on format
   const teams = format === "doubles" 
     ? Array.from({ length: Math.floor(players.length / 2) }, (_, i) => 
-        [players[i * 2], players[i + 1]])
+        [players[i * 2], players[(i * 2) + 1]].filter(Boolean))
     : players.map(player => [player]);
 
   const n = teams.length;
@@ -79,4 +79,4 @@ export const generateRegularSeasonSchedule = (
   }
 
   return allMatches;
-}; 
+};
