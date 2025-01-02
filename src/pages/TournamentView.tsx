@@ -8,7 +8,7 @@ import { calculateStandings } from "@/utils/tournamentUtils";
 import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
-import StandingsTable from "@/components/tournament/StandingsTable";
+import StandingsTable from "@/components/tournament/Standings";
 import { useToast } from "@/components/ui/use-toast";
 import RegularSeasonView from "./RegularSeasonView";
 import PlayoffView from "./PlayoffView";

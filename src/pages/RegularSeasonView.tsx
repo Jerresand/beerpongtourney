@@ -5,7 +5,7 @@ import { Tournament } from "@/types/tournament";
 import { calculateStandings, Standing } from "@/utils/tournamentUtils";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
-import StandingsTable from "@/components/tournament/StandingsTable";
+import StandingsTable from "@/components/tournament/Standings";
 
 interface RegularSeasonViewProps {
   tournament: Tournament;
@@ -62,4 +62,4 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
   );
 };
 
-export default RegularSeasonView; 
+export default RegularSeasonView;
