@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
-import MatchView from './MatchView';
+import MatchStatsView from './MatchStatsView';
 import { useToast } from "@/components/ui/use-toast";
 import { isRegularMatch, isPlayoffMatch } from '@/types/tournament';
 
@@ -122,7 +122,7 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
       </Table>
 
       {selectedMatch && (
-        <MatchView
+        <MatchStatsView
           match={selectedMatch}
           isOpen={true}
           onClose={() => setSelectedMatch(null)}

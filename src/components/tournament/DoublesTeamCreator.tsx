@@ -37,20 +37,24 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
   };
 
   const handleRandomTeams = () => {
-    // Create a shuffled copy of available players
+    // Keep track of all existing teams
+    const existingTeams = [...teams];
+    
+    // Create a shuffled copy of available players only
     const shuffledPlayers = [...availablePlayers]
       .sort(() => Math.random() - 0.5);
     
     // Create teams from shuffled players
-    const randomTeams: Team[] = [];
+    const newTeams: Team[] = [];
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
-      randomTeams.push({
+      newTeams.push({
         name: `${shuffledPlayers[i].name} & ${shuffledPlayers[i + 1].name}`,
         players: [shuffledPlayers[i], shuffledPlayers[i + 1]]
       });
     }
     
-    setTeams(randomTeams);
+    // Update state with all teams
+    setTeams([...existingTeams, ...newTeams]);
     setAvailablePlayers([]);
     setSelectedPlayers([]);
   };
@@ -62,7 +66,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
         <Button
           onClick={handleRandomTeams}
           variant="outline"
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 text-white"
           disabled={availablePlayers.length === 0}
         >
           Randomize Teams 🎲
@@ -76,9 +80,9 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
             {availablePlayers.map(player => (
               <Button
                 key={player.name}
-                variant="outline"
+                variant="secondary"
                 onClick={() => handlePlayerSelect(player)}
-                className="w-full"
+                className="w-full bg-gray-700 hover:bg-purple-700 text-white"
               >
                 {player.name}
               </Button>
@@ -90,7 +94,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
           <h3 className="text-lg font-semibold text-white mb-2">Selected Players</h3>
           <div className="space-y-2">
             {selectedPlayers.map(player => (
-              <div key={player.name} className="text-white p-2 bg-muted rounded">
+              <div key={player.name} className="text-white p-2 bg-purple-800 rounded">
                 {player.name}
               </div>
             ))}
@@ -99,7 +103,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
           {selectedPlayers.length === 2 && (
             <Button
               onClick={handleCreateTeam}
-              className="w-full mt-4"
+              className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
             >
               Create Team
             </Button>
@@ -111,7 +115,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
         <h3 className="text-lg font-semibold text-white mb-2">Created Teams</h3>
         <div className="space-y-2">
           {teams.map(team => (
-            <div key={team.name} className="text-white p-2 bg-muted rounded">
+            <div key={team.name} className="text-white p-2 bg-blue-800 rounded">
               {team.name}
             </div>
           ))}
@@ -121,7 +125,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
       <Button
         onClick={handleFinish}
         disabled={availablePlayers.length > 0}
-        className="w-full"
+        className="w-full bg-green-600 hover:bg-green-700 text-white"
       >
         Finish Team Creation
       </Button>

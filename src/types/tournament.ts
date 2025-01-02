@@ -14,13 +14,13 @@ export interface BaseMatch {
     player: Player;
     cups: number;
     defense: number;
-    isIcer: boolean;
+    ices: number;
   }[];
   team2Players: {
     player: Player;
     cups: number;
     defense: number;
-    isIcer: boolean;
+    ices: number;
   }[];
 }
 
