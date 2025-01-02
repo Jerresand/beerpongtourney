@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
-import { Tournament, Match } from "@/types/tournament";
+import { Tournament, Match, RegularMatch } from "@/types/tournament";
 import { calculateStandings } from "@/utils/tournamentUtils";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
@@ -14,7 +14,7 @@ interface RegularSeasonViewProps {
 const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
   const [showStandings, setShowStandings] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
-  const [currentTournament, setCurrentTournament] = useState(tournament);
+  const [currentTournament, setCurrentTournament] = useState<Tournament>(tournament);
   const standings = calculateStandings(currentTournament);
 
   const handleTeamNameUpdate = (teamId: string, newName: string) => {
@@ -24,11 +24,14 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
   };
 
   const handleMatchUpdate = (updatedMatch: Match) => {
+    // Ensure we're working with RegularMatch type
+    const updatedRegularMatch = updatedMatch as RegularMatch;
+    
     const updatedMatches = currentTournament.regularMatches.map(match =>
-      match.id === updatedMatch.id ? updatedMatch : match
+      match.id === updatedRegularMatch.id ? updatedRegularMatch : match
     );
 
-    const updatedTournament = {
+    const updatedTournament: Tournament = {
       ...currentTournament,
       regularMatches: updatedMatches
     };
