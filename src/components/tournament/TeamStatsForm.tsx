@@ -1,3 +1,4 @@
+import { Player } from '@/types/tournament';
 import React from 'react';
 
 interface PlayerStats {
