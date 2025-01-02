@@ -8,17 +8,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { CalendarDays } from "lucide-react";
+import MatchView from './MatchView';
 
 interface MatchScheduleProps {
   matches: Match[];
 }
 
 const MatchSchedule = ({ matches }: MatchScheduleProps) => {
+  const [selectedRound, setSelectedRound] = useState<number>(1);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+
   // Get all available rounds/series
   const rounds = [...new Set(matches.map(m => 
     'round' in m ? m.round : m.series
   ))].sort((a, b) => (a || 0) - (b || 0));
-  const [selectedRound, setSelectedRound] = useState<number>(rounds[0] || 1);
 
   const formatTeamName = (players: { player: Player }[]) => {
     if (!players || !Array.isArray(players)) return '-';
@@ -32,6 +37,12 @@ const MatchSchedule = ({ matches }: MatchScheduleProps) => {
   const roundMatches = matches.filter(match => 
     'round' in match ? match.round === selectedRound : match.series === selectedRound
   );
+
+  const handleMatchUpdate = (updatedMatch: Match) => {
+    // Here you would typically update the match in your tournament state
+    // For now, we'll just log it
+    console.log('Match updated:', updatedMatch);
+  };
 
   // If there are no matches, show a message
   if (!matches || matches.length === 0) {
@@ -71,6 +82,7 @@ const MatchSchedule = ({ matches }: MatchScheduleProps) => {
             <TableHead>Team 1</TableHead>
             <TableHead className="text-center">Score</TableHead>
             <TableHead>Team 2</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,10 +100,29 @@ const MatchSchedule = ({ matches }: MatchScheduleProps) => {
               <TableCell className="text-white">
                 {formatTeamName(match.team2Players)}
               </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedMatch(match)}
+                  className="hover:bg-dashboard-background"
+                >
+                  <CalendarDays className="h-5 w-5 text-dashboard-text" />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {selectedMatch && (
+        <MatchView
+          match={selectedMatch}
+          isOpen={true}
+          onClose={() => setSelectedMatch(null)}
+          onSave={handleMatchUpdate}
+        />
+      )}
     </div>
   );
 };
