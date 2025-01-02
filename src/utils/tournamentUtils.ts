@@ -39,6 +39,7 @@ export const calculateRegularStandings = (tournament: Tournament | null): Standi
 
     const team1Won = match.team1Score > match.team2Score;
     
+    // Process team 1 players
     match.team1Players.forEach(({ player }) => {
       const stats = playerStats.get(player.name);
       if (stats) {
@@ -54,6 +55,7 @@ export const calculateRegularStandings = (tournament: Tournament | null): Standi
       }
     });
 
+    // Process team 2 players
     match.team2Players.forEach(({ player }) => {
       const stats = playerStats.get(player.name);
       if (stats) {
