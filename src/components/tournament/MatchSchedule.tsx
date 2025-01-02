@@ -23,7 +23,6 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
   const [selectedRound, setSelectedRound] = useState<number>(1);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
-  // Get all available rounds/series
   const rounds = [...new Set(matches.map(m => 
     'round' in m ? m.round : m.series
   ))].sort((a, b) => (a || 0) - (b || 0));
@@ -36,7 +35,6 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
       .join(' & ') || '-';
   };
 
-  // Filter matches by selected round/series
   const roundMatches = matches.filter(match => 
     'round' in match ? match.round === selectedRound : match.series === selectedRound
   );
@@ -48,10 +46,10 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
         title: "Match Updated",
         description: "The match statistics have been saved successfully.",
       });
+      setSelectedMatch(null);
     }
   };
 
-  // If there are no matches, show a message
   if (!matches || matches.length === 0) {
     return (
       <div className="bg-dashboard-card p-6 rounded-lg">

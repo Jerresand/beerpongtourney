@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
-import { Tournament } from "@/types/tournament";
-import { calculateStandings, Standing } from "@/utils/tournamentUtils";
+import { Tournament, Match } from "@/types/tournament";
+import { calculateStandings } from "@/utils/tournamentUtils";
 import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
 import StandingsTable from "@/components/tournament/Standings";
@@ -12,14 +12,36 @@ interface RegularSeasonViewProps {
 }
 
 const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
-  const [showStatistics, setShowStatistics] = useState(false);
+  const [showStandings, setShowStandings] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
-  const standings = calculateStandings(tournament);
+  const [currentTournament, setCurrentTournament] = useState(tournament);
+  const standings = calculateStandings(currentTournament);
 
   const handleTeamNameUpdate = (teamId: string, newName: string) => {
     const teamNames = JSON.parse(localStorage.getItem("tournamentTeamNames") || "{}");
     teamNames[`${tournament.id}-${teamId}`] = newName;
     localStorage.setItem("tournamentTeamNames", JSON.stringify(teamNames));
+  };
+
+  const handleMatchUpdate = (updatedMatch: Match) => {
+    const updatedMatches = currentTournament.regularMatches.map(match =>
+      match.id === updatedMatch.id ? updatedMatch : match
+    );
+
+    const updatedTournament = {
+      ...currentTournament,
+      regularMatches: updatedMatches
+    };
+
+    // Update local state
+    setCurrentTournament(updatedTournament);
+
+    // Update localStorage
+    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournaments = tournaments.map((t: Tournament) =>
+      t.id === tournament.id ? updatedTournament : t
+    );
+    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
   };
 
   return (
@@ -30,7 +52,7 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
             variant="outline"
             onClick={() => {
               setShowTeams(!showTeams);
-              setShowStatistics(false);
+              setShowStandings(false);
             }}
           >
             <Users className="mr-2 h-4 w-4" />
@@ -40,23 +62,26 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
         <Button
           variant="outline"
           onClick={() => {
-            setShowStatistics(!showStatistics);
+            setShowStandings(!showStandings);
             setShowTeams(false);
           }}
         >
-          {showStatistics ? "Show Matches" : "Show Statistics"}
+          {showStandings ? "Show Matches" : "Standings"}
         </Button>
       </div>
 
       {showTeams ? (
         <TeamView 
-          matches={tournament.regularMatches} 
+          matches={currentTournament.regularMatches} 
           onTeamNameUpdate={handleTeamNameUpdate}
         />
-      ) : showStatistics ? (
+      ) : showStandings ? (
         <StandingsTable standings={standings} />
       ) : (
-        <MatchSchedule matches={tournament.regularMatches} />
+        <MatchSchedule 
+          matches={currentTournament.regularMatches} 
+          onMatchUpdate={handleMatchUpdate}
+        />
       )}
     </div>
   );
