@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tournament, Match, Team, Player } from '@/types/tournament';
 import MatchSchedule from './MatchSchedule';
 import TeamView from './TeamView';
@@ -9,7 +9,23 @@ interface RegularSeasonViewProps {
   tournament: Tournament;
 }
 
-const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
+const RegularSeasonView = ({ tournament: initialTournament }: RegularSeasonViewProps) => {
+  const [tournament, setTournament] = useState(initialTournament);
+
+  // Listen for storage events to update the tournament data
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const tournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+      const updatedTournament = tournaments.find((t: Tournament) => t.id === tournament.id);
+      if (updatedTournament) {
+        setTournament(updatedTournament);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [tournament.id]);
+
   const standings = calculateRegularStandings(tournament);
 
   const handleMatchUpdate = (match: Match, updatedTeams: Team[], updatedPlayers: Player[]) => {
@@ -35,9 +51,7 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
     // Save the updated tournament
     tournaments[tournamentIndex] = updatedTournament;
     localStorage.setItem('activeTournaments', JSON.stringify(tournaments));
-
-    // Force a re-render by updating the URL
-    window.dispatchEvent(new Event('storage'));
+    setTournament(updatedTournament);
   };
 
   const handleTeamNameUpdate = (teamId: string, newName: string) => {
@@ -61,9 +75,9 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
     // Save the updated tournament
     tournaments[tournamentIndex] = updatedTournament;
     localStorage.setItem('activeTournaments', JSON.stringify(tournaments));
-
-    // Force a re-render by updating the URL
-    window.dispatchEvent(new Event('storage'));
+    
+    // Update local state
+    setTournament(updatedTournament);
   };
 
   return (

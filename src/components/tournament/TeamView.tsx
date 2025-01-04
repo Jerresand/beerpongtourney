@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Match, Team, Tournament } from '@/types/tournament';
+import { Team, Tournament } from '@/types/tournament';
 import { useToast } from "@/hooks/use-toast";
 
 interface TeamViewProps {
