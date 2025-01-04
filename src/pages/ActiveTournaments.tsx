@@ -10,20 +10,7 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface Player {
-  name: string;
-}
-
-interface Tournament {
-  id: string;
-  name: string;
-  players: Player[];
-  format: "singles" | "doubles";
-  matchesPerTeam: number;
-  type: "playoffs" | "regular+playoffs";
-  createdAt: string;
-}
+import { Tournament } from "@/types/tournament";
 
 const ActiveTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
