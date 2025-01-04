@@ -1,27 +1,46 @@
+export interface PlayerStats {
+  gamesPlayed: number;
+  totalCups: number;
+  totalIces: number;
+  totalDefenses: number;
+}
+
 export interface Player {
+  id: string;
   name: string;
-  totalCups?: number;
-  iced?: number;
-  defense?: number;
+  stats: PlayerStats;
+}
+
+export interface TeamStats {
+  wins: number;
+  losses: number;
+  gamesPlayed: number;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  players: Player[];
+  stats: TeamStats;
+}
+
+export interface MatchPlayerStats {
+  playerId: string;
+  cups: number;
+  ices: number;
+  defense: number;
 }
 
 // Base match type
 export interface BaseMatch {
   id: string;
+  team1Id: string;
+  team2Id: string;
   team1Score: number;
   team2Score: number;
-  team1Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    ices: number;
-  }[];
-  team2Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    ices: number;
-  }[];
+  team1PlayerStats: MatchPlayerStats[];
+  team2PlayerStats: MatchPlayerStats[];
+  isComplete: boolean;
 }
 
 // Regular season match
@@ -38,15 +57,11 @@ export interface PlayoffMatch extends BaseMatch {
 
 export type Match = RegularMatch | PlayoffMatch;
 
-export interface Team {
-  name: string;
-  players: Player[];
-}
-
 export interface Tournament {
   id: string;
   name: string;
   players: Player[];
+  teams: Team[];
   format: "singles" | "doubles";
   matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
@@ -54,7 +69,6 @@ export interface Tournament {
   playoffMatches: PlayoffMatch[];
   currentPhase: "regular" | "playoffs";
   createdAt: string;
-  teams?: Team[];
 }
 
 export const isRegularMatch = (match: Match): match is RegularMatch => !match.isPlayoff;

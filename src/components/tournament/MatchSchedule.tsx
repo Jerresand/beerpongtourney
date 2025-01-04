@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Match, Player } from '@/types/tournament';
+import { Match, Player, Team, Tournament } from '@/types/tournament';
 import {
   Select,
   SelectContent,
@@ -10,39 +10,75 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
-import MatchStatsView from './MatchStatsView';
+import MatchStatisticsManager from './MatchStatisticsManager';
 import { useToast } from "@/components/ui/use-toast";
-import { isRegularMatch, isPlayoffMatch } from '@/types/tournament';
+import { isRegularMatch } from '@/types/tournament';
 
 interface MatchScheduleProps {
   matches: Match[];
-  onMatchUpdate?: (updatedMatch: Match) => void;
+  tournament: Tournament;
+  onMatchUpdate?: (match: Match, updatedTeams: Team[], updatedPlayers: Player[]) => void;
 }
 
-const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
+const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMatchUpdate }) => {
   const { toast } = useToast();
   const [selectedRound, setSelectedRound] = useState<number>(1);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [teamMap, setTeamMap] = useState<Map<string, Team>>(new Map());
 
-  const rounds = [...new Set(matches.map(m => 
-    'round' in m ? m.round : m.series
-  ))].sort((a, b) => (a || 0) - (b || 0));
+  // Initialize team map for faster lookups
+  useEffect(() => {
+    const map = new Map<string, Team>();
+    tournament.teams.forEach(team => {
+      map.set(team.id, team);
+      console.log(`Mapping team ID ${team.id} to team name "${team.name}"`);
+    });
+    setTeamMap(map);
 
-  const formatTeamName = (players: { player: Player }[]) => {
-    if (!players || !Array.isArray(players)) return '-';
-    return players
-      .filter(p => p && p.player && p.player.name)
-      .map(p => p.player.name)
-      .join(' & ') || '-';
+    // Debug: Log all matches and their team IDs
+    matches.forEach(match => {
+      console.log(`Match ${match.id}:`, {
+        team1Id: match.team1Id,
+        team2Id: match.team2Id,
+        team1Name: map.get(match.team1Id)?.name || 'Unknown',
+        team2Name: map.get(match.team2Id)?.name || 'Unknown'
+      });
+    });
+  }, [tournament.teams, matches]);
+
+  // Get unique rounds from matches
+  const rounds = Array.from(new Set(matches.map(m => 
+    isRegularMatch(m) ? m.round : m.series
+  ))).sort((a, b) => (a || 0) - (b || 0));
+
+  // Get team name by ID with error handling
+  const getTeamName = (teamId: string): string => {
+    const team = teamMap.get(teamId);
+    if (!team) {
+      console.warn(`Team with ID ${teamId} not found in team map. Available teams:`, 
+        Array.from(teamMap.entries()).map(([id, team]) => ({ id, name: team.name }))
+      );
+      return 'Unknown Team';
+    }
+    return team.name;
   };
 
-  const roundMatches = matches.filter(match => 
+  // Filter matches for current round
+  const currentRoundMatches = matches.filter(match => 
     isRegularMatch(match) ? match.round === selectedRound : match.series === selectedRound
   );
 
-  const handleMatchUpdate = (updatedMatch: Match) => {
+  // Handle match update
+  const handleMatchUpdate = (updatedMatch: Match, updatedTeams: Team[], updatedPlayers: Player[]) => {
     if (onMatchUpdate) {
-      onMatchUpdate(updatedMatch);
+      // Update team map with new team data
+      const newTeamMap = new Map(teamMap);
+      updatedTeams.forEach(team => {
+        newTeamMap.set(team.id, team);
+      });
+      setTeamMap(newTeamMap);
+
+      onMatchUpdate(updatedMatch, updatedTeams, updatedPlayers);
       toast({
         title: "Match Updated",
         description: "The match statistics have been saved successfully.",
@@ -92,38 +128,44 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roundMatches.map((match, index) => (
-            <TableRow key={match.id} className="hover:bg-muted/5">
-              <TableCell className="text-dashboard-text font-medium">
-                #{index + 1}
-              </TableCell>
-              <TableCell className="text-white">
-                {formatTeamName(match.team1Players)}
-              </TableCell>
-              <TableCell className="text-center text-white">
-                {match.team1Score !== undefined ? match.team1Score : '-'} - {match.team2Score !== undefined ? match.team2Score : '-'}
-              </TableCell>
-              <TableCell className="text-white">
-                {formatTeamName(match.team2Players)}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedMatch(match)}
-                  className="hover:bg-dashboard-background"
-                >
-                  <Pencil className="h-5 w-5 text-dashboard-text" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {currentRoundMatches.map((match, index) => {
+            const team1Name = getTeamName(match.team1Id);
+            const team2Name = getTeamName(match.team2Id);
+            
+            return (
+              <TableRow key={match.id} className="hover:bg-muted/5">
+                <TableCell className="text-dashboard-text font-medium">
+                  #{index + 1}
+                </TableCell>
+                <TableCell className="text-white">
+                  {team1Name}
+                </TableCell>
+                <TableCell className="text-center text-white">
+                  {match.team1Score !== undefined ? match.team1Score : '-'} - {match.team2Score !== undefined ? match.team2Score : '-'}
+                </TableCell>
+                <TableCell className="text-white">
+                  {team2Name}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedMatch(match)}
+                    className="hover:bg-dashboard-background"
+                  >
+                    <Pencil className="h-5 w-5 text-dashboard-text" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 
       {selectedMatch && (
-        <MatchStatsView
+        <MatchStatisticsManager
           match={selectedMatch}
+          tournament={tournament}
           isOpen={true}
           onClose={() => setSelectedMatch(null)}
           onSave={handleMatchUpdate}

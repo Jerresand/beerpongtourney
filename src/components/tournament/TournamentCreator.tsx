@@ -8,6 +8,7 @@ import PlayerManagement from "./PlayerManagement";
 import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
 import { Player, Tournament, RegularMatch, Team } from "@/types/tournament";
 import { validateTournament } from '@/utils/tournamentUtils';
+import { createTeam } from '@/utils/teamUtils';
 import DoublesTeamCreator from './DoublesTeamCreator';
 
 const TournamentCreator = () => {
@@ -49,7 +50,16 @@ const TournamentCreator = () => {
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
-      setPlayers([...players, { name: newPlayerName.trim() }]);
+      setPlayers([...players, {
+        id: crypto.randomUUID(),
+        name: newPlayerName.trim(),
+        stats: {
+          gamesPlayed: 0,
+          totalCups: 0,
+          totalIces: 0,
+          totalDefenses: 0
+        }
+      }]);
       setNewPlayerName("");
     }
   };
@@ -61,7 +71,16 @@ const TournamentCreator = () => {
   const handleGroupSelect = (groupName: string) => {
     const group = groups.find(g => g.name === groupName);
     if (group) {
-      setPlayers(group.players);
+      setPlayers(group.players.map(p => ({
+        id: crypto.randomUUID(),
+        name: p.name,
+        stats: {
+          gamesPlayed: 0,
+          totalCups: 0,
+          totalIces: 0,
+          totalDefenses: 0
+        }
+      })));
       setSelectedGroup(groupName);
     }
   };
@@ -82,43 +101,10 @@ const TournamentCreator = () => {
       return;
     }
 
+    const teams = generateTeams(players, format);
     const regularMatches = generateRegularSeasonSchedule(
-      players,
-      parseInt(matchesPerTeam),
-      format
-    );
-
-    const tournament: Tournament = {
-      id: crypto.randomUUID(),
-      name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
-      players,
-      format,
-      matchesPerTeam: parseInt(matchesPerTeam),
-      type: tournamentType,
-      regularMatches,
-      playoffMatches: [],
-      currentPhase: "regular",
-      createdAt: new Date().toISOString(),
-      teams: generateTeams(players, format)
-    };
-
-    // Save to localStorage
-    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
-
-    toast({
-      title: "Tournament Created! 🎉",
-      description: "Head to Active Tournaments to start the regular season",
-    });
-
-    navigate('/active-tournaments');
-  };
-
-  const handleTeamsCreated = (teams: Team[]) => {
-    const regularMatches = generateRegularSeasonSchedule(
-      players,
-      parseInt(matchesPerTeam),
-      format
+      teams,
+      parseInt(matchesPerTeam)
     );
 
     const tournament: Tournament = {
@@ -147,19 +133,50 @@ const TournamentCreator = () => {
     navigate('/active-tournaments');
   };
 
-  // Helper function to generate teams for doubles
-  const generateTeams = (players: Player[], format: "singles" | "doubles"): { name: string, players: Player[] }[] => {
-    const teams = [];
-    if (format === "doubles") {
-      for (let i = 0; i < players.length; i += 2) {
-        const teamName = `${players[i].name} & ${players[i + 1].name}`;
-        teams.push({
-          name: teamName,
-          players: [players[i], players[i + 1]]
-        });
-      }
+  const handleTeamsCreated = (teams: Team[]) => {
+    // Store the teams first to ensure their IDs are preserved
+    const tournamentTeams = teams;
+    
+    const regularMatches = generateRegularSeasonSchedule(
+      tournamentTeams,
+      parseInt(matchesPerTeam)
+    );
+
+    const tournament: Tournament = {
+      id: crypto.randomUUID(),
+      name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
+      players,
+      format,
+      matchesPerTeam: parseInt(matchesPerTeam),
+      type: tournamentType,
+      regularMatches,
+      playoffMatches: [],
+      currentPhase: "regular",
+      createdAt: new Date().toISOString(),
+      teams: tournamentTeams
+    };
+
+    // Save to localStorage
+    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
+
+    toast({
+      title: "Tournament Created! 🎉",
+      description: "Head to Active Tournaments to start the regular season",
+    });
+
+    navigate('/active-tournaments');
+  };
+
+  // Helper function to generate teams for singles
+  const generateTeams = (players: Player[], format: "singles" | "doubles"): Team[] => {
+    if (format === "singles") {
+      return players.map(player => ({
+        id: crypto.randomUUID(),
+        ...createTeam([player])
+      }));
     }
-    return teams;
+    return [];
   };
 
   if (showTeamCreator && format === "doubles") {

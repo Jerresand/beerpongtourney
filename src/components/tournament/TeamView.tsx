@@ -2,60 +2,51 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Match, Player } from '@/types/tournament';
+import { Match, Team, Tournament } from '@/types/tournament';
 
 interface TeamViewProps {
-  matches: Match[];
-  onTeamNameUpdate: (teamId: string, newName: string) => void;
+  tournament: Tournament;
+  onTeamNameUpdate: (teamId: string, name: string) => void;
 }
 
-interface Team {
-  id: string;
-  players: Player[];
-  name: string;
-}
-
-const TeamView = ({ matches, onTeamNameUpdate }: TeamViewProps) => {
-  const [teams, setTeams] = useState<Team[]>(() => {
-    if (!matches || matches.length === 0) return [];
-    
-    const uniqueTeams = new Map<string, Team>();
-    
-    matches.forEach(match => {
-      if (!match.team1Players || !match.team2Players) return;
-      
-      // Process team 1
-      const team1Id = match.team1Players.map(p => p.player.name).sort().join('-');
-      if (!uniqueTeams.has(team1Id)) {
-        const defaultName = `Team ${match.team1Players.map(p => p.player.name.substring(0, 3)).join('')}`;
-        uniqueTeams.set(team1Id, {
-          id: team1Id,
-          players: match.team1Players.map(p => p.player),
-          name: defaultName
-        });
-      }
-      
-      // Process team 2
-      const team2Id = match.team2Players.map(p => p.player.name).sort().join('-');
-      if (!uniqueTeams.has(team2Id)) {
-        const defaultName = `Team ${match.team2Players.map(p => p.player.name.substring(0, 3)).join('')}`;
-        uniqueTeams.set(team2Id, {
-          id: team2Id,
-          players: match.team2Players.map(p => p.player),
-          name: defaultName
-        });
-      }
-    });
-    
-    return Array.from(uniqueTeams.values());
-  });
-
+const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
   const handleNameChange = (teamId: string, newName: string) => {
-    setTeams(prev => prev.map(team => 
-      team.id === teamId ? { ...team, name: newName } : team
-    ));
+    // Get the current tournament data
+    const tournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+    const tournamentIndex = tournaments.findIndex((t: Tournament) => t.id === tournament.id);
+    
+    if (tournamentIndex === -1) {
+      console.error('Tournament not found');
+      return;
+    }
+
+    // Update the team name in the tournament
+    const updatedTournament = {
+      ...tournaments[tournamentIndex],
+      teams: tournaments[tournamentIndex].teams.map((t: Team) =>
+        t.id === teamId ? { ...t, name: newName } : t
+      )
+    };
+
+    // Save the updated tournament
+    tournaments[tournamentIndex] = updatedTournament;
+    localStorage.setItem('activeTournaments', JSON.stringify(tournaments));
+
+    // Notify parent component
     onTeamNameUpdate(teamId, newName);
+
+    // Force a re-render by updating the URL
+    window.dispatchEvent(new Event('storage'));
   };
+
+  if (!tournament.teams || tournament.teams.length === 0) {
+    return (
+      <div className="bg-dashboard-card p-6 rounded-lg">
+        <h3 className="text-xl font-bold text-white mb-4">Teams</h3>
+        <p className="text-dashboard-text">No teams created yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">
@@ -63,21 +54,27 @@ const TeamView = ({ matches, onTeamNameUpdate }: TeamViewProps) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Team Name</TableHead>
-            <TableHead>Players</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead key="name">Team Name</TableHead>
+            <TableHead key="players">Players</TableHead>
+            <TableHead key="stats">Stats</TableHead>
+            <TableHead key="actions">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team) => (
+          {tournament.teams.map((team) => (
             <TableRow key={team.id}>
-              <TableCell className="text-white">
+              <TableCell key={`${team.id}-name`} className="text-white">
                 {team.name}
               </TableCell>
-              <TableCell className="text-dashboard-text">
+              <TableCell key={`${team.id}-players`} className="text-dashboard-text">
                 {team.players.map(p => p.name).join(' & ')}
               </TableCell>
-              <TableCell>
+              <TableCell key={`${team.id}-stats`} className="text-dashboard-text">
+                <div className="text-sm">
+                  W: {team.stats?.wins || 0} L: {team.stats?.losses || 0} ({team.stats?.gamesPlayed || 0} games)
+                </div>
+              </TableCell>
+              <TableCell key={`${team.id}-actions`}>
                 <div className="flex gap-2">
                   <Input
                     placeholder="New team name"

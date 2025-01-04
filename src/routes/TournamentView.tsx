@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "@/components/dashboard/Layout";
 import { Tournament } from "@/types/tournament";
-import RegularSeasonView from "./RegularSeasonView";
-import PlayoffView from "./PlayoffView";
+import RegularSeasonView from "@/components/tournament/RegularSeasonView";
+import PlayoffView from "@/components/tournament/PlayoffView";
 
 const isPlayoffPhase = (tournament: Tournament) => tournament.currentPhase === "playoffs";
 

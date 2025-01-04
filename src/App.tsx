@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrivateRoute from "./components/auth/PrivateRoute";
-import Login from "./pages/Login";
-import Index from "./pages/Index";
-import Tournament from "./pages/Tournament";
-import ActiveTournaments from "./pages/ActiveTournaments";
-import TournamentView from "./pages/TournamentView";
+import Login from "./routes/Login";
+import Index from "./routes/Index";
+import Tournament from "./routes/Tournament";
+import ActiveTournaments from "./routes/ActiveTournaments";
+import TournamentView from "./routes/TournamentView";
 import "./App.css";
 
 function App() {

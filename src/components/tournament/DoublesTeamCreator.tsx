@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Player, Team } from "@/types/tournament";
+import { createTeam } from "@/utils/teamUtils";
 
 interface DoublesTeamCreatorProps {
   players: Player[];
@@ -21,9 +22,9 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
 
   const handleCreateTeam = () => {
     if (selectedPlayers.length === 2) {
-      const newTeam: Team = {
-        name: `${selectedPlayers[0].name} & ${selectedPlayers[1].name}`,
-        players: selectedPlayers
+      const newTeam = {
+        id: crypto.randomUUID(),
+        ...createTeam(selectedPlayers)
       };
       setTeams([...teams, newTeam]);
       setSelectedPlayers([]);
@@ -37,24 +38,19 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
   };
 
   const handleRandomTeams = () => {
-    // Keep track of all existing teams
-    const existingTeams = [...teams];
-    
-    // Create a shuffled copy of available players only
-    const shuffledPlayers = [...availablePlayers]
-      .sort(() => Math.random() - 0.5);
-    
-    // Create teams from shuffled players
+    const shuffledPlayers = [...availablePlayers].sort(() => Math.random() - 0.5);
     const newTeams: Team[] = [];
+    
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
-      newTeams.push({
-        name: `${shuffledPlayers[i].name} & ${shuffledPlayers[i + 1].name}`,
-        players: [shuffledPlayers[i], shuffledPlayers[i + 1]]
-      });
+      if (i + 1 < shuffledPlayers.length) {
+        newTeams.push({
+          id: crypto.randomUUID(),
+          ...createTeam([shuffledPlayers[i], shuffledPlayers[i + 1]])
+        });
+      }
     }
     
-    // Update state with all teams
-    setTeams([...existingTeams, ...newTeams]);
+    setTeams([...teams, ...newTeams]);
     setAvailablePlayers([]);
     setSelectedPlayers([]);
   };

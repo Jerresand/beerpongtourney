@@ -1,19 +1,12 @@
-import { Player, RegularMatch } from "@/types/tournament";
+import { Player, RegularMatch, Team } from "@/types/tournament";
 
 export const generateRegularSeasonSchedule = (
-  players: Player[], 
-  cyclesCount: number,
-  format: "singles" | "doubles"
+  teams: Team[],
+  cyclesCount: number
 ): RegularMatch[] => {
   const allMatches: RegularMatch[] = [];
   
-  if (players.length < 2) return allMatches;
-
-  // Convert players into teams based on format
-  const teams = format === "doubles" 
-    ? Array.from({ length: Math.floor(players.length / 2) }, (_, i) => 
-        [players[i * 2], players[(i * 2) + 1]].filter(Boolean))
-    : players.map(player => [player]);
+  if (teams.length < 2) return allMatches;
 
   const n = teams.length;
   const useTeams = n % 2 !== 0 ? [...teams, null] : teams; // Add null for bye
@@ -37,22 +30,25 @@ export const generateRegularSeasonSchedule = (
         if (team1 && team2) {
           roundMatches.push({
             id: crypto.randomUUID(),
+            team1Id: team1.id,
+            team2Id: team2.id,
             team1Score: 0,
             team2Score: 0,
-            team1Players: team1.map(player => ({ 
-              player,
+            team1PlayerStats: team1.players.map(player => ({
+              playerId: player.id,
               cups: 0,
-              defense: 0,
-              isIcer: false
+              ices: 0,
+              defense: 0
             })),
-            team2Players: team2.map(player => ({ 
-              player,
+            team2PlayerStats: team2.players.map(player => ({
+              playerId: player.id,
               cups: 0,
-              defense: 0,
-              isIcer: false
+              ices: 0,
+              defense: 0
             })),
             isPlayoff: false,
-            round: round + 1
+            round: round + 1,
+            isComplete: false
           });
         }
       }
