@@ -1,95 +1,58 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React from 'react';
+import { useTournament } from '@/contexts/TournamentContext';
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Match, Player } from '@/types/tournament';
+import { Team } from '@/types/tournament';
 
-interface TeamViewProps {
-  matches: Match[];
-  onTeamNameUpdate: (teamId: string, newName: string) => void;
-}
+const TeamView = () => {
+  const { tournament, updateTournament } = useTournament();
+  console.log("TeamView - tournament:", tournament);
+  console.log("TeamView - teams:", tournament?.teams);
 
-interface Team {
-  id: string;
-  players: Player[];
-  name: string;
-}
-
-const TeamView = ({ matches, onTeamNameUpdate }: TeamViewProps) => {
-  const [teams, setTeams] = useState<Team[]>(() => {
-    if (!matches || matches.length === 0) return [];
-    
-    const uniqueTeams = new Map<string, Team>();
-    
-    matches.forEach(match => {
-      if (!match.team1Players || !match.team2Players) return;
-      
-      // Process team 1
-      const team1Id = match.team1Players.map(p => p.player.name).sort().join('-');
-      if (!uniqueTeams.has(team1Id)) {
-        const defaultName = `Team ${match.team1Players.map(p => p.player.name.substring(0, 3)).join('')}`;
-        uniqueTeams.set(team1Id, {
-          id: team1Id,
-          players: match.team1Players.map(p => p.player),
-          name: defaultName
-        });
-      }
-      
-      // Process team 2
-      const team2Id = match.team2Players.map(p => p.player.name).sort().join('-');
-      if (!uniqueTeams.has(team2Id)) {
-        const defaultName = `Team ${match.team2Players.map(p => p.player.name.substring(0, 3)).join('')}`;
-        uniqueTeams.set(team2Id, {
-          id: team2Id,
-          players: match.team2Players.map(p => p.player),
-          name: defaultName
-        });
+  // Create teams array from matches if it doesn't exist
+  const teams = tournament?.teams || tournament?.regularMatches.reduce((acc, match) => {
+    match.teams.forEach(team => {
+      if (!acc.find(t => t.id === team.team.id)) {
+        acc.push(team.team);
       }
     });
-    
-    return Array.from(uniqueTeams.values());
-  });
+    return acc;
+  }, [] as Team[]) || [];
+  console.log("TeamView - computed teams:", teams);
+
+  if (!tournament) return null;
 
   const handleNameChange = (teamId: string, newName: string) => {
-    setTeams(prev => prev.map(team => 
+    const updatedTeams = tournament.teams?.map(team => 
       team.id === teamId ? { ...team, name: newName } : team
-    ));
-    onTeamNameUpdate(teamId, newName);
+    );
+
+    updateTournament({
+      ...tournament,
+      teams: updatedTeams
+    });
   };
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">
       <h3 className="text-xl font-bold text-white mb-4">Teams</h3>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Team Name</TableHead>
-            <TableHead>Players</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {teams.map((team) => (
-            <TableRow key={team.id}>
-              <TableCell className="text-white">
-                {team.name}
-              </TableCell>
-              <TableCell className="text-dashboard-text">
-                {team.players.map(p => p.name).join(' & ')}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="New team name"
-                    className="max-w-[200px]"
-                    onChange={(e) => handleNameChange(team.id, e.target.value)}
-                  />
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="space-y-3">
+        {tournament.teams.map((team) => (
+          <div key={team.id} className="flex items-center gap-4 p-3 bg-dashboard-background rounded-lg">
+            <div className="flex-1">
+              <p className="text-sm text-gray-400">Players</p>
+              <p className="text-white">{team.players.map(p => p.name).join(' & ')}</p>
+            </div>
+            <div className="w-64">
+              <p className="text-sm text-gray-400 mb-1">Team Name</p>
+              <Input
+                value={team.name}
+                onChange={(e) => handleNameChange(team.id, e.target.value)}
+                className="bg-dashboard-card"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

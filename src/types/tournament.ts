@@ -8,22 +8,27 @@ export interface Player { //stores all individual stats for each player and has 
 }[];
 
 // Base match type
-export interface BaseMatch { // contains all the needed variables for all kinds of matches
+export interface BaseMatch {
   id: string;
-  team1Score: number;
-  team2Score: number;
-  team1Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    ices: number;
-  }[];
-  team2Players: {
-    player: Player;
-    cups: number;
-    defense: number;
-    ices: number;
-  }[];
+  teams: [{
+    team: Team;
+    score: number;
+    playerStats: {
+      player: Player;
+      cups: number;
+      defense: number;
+      ices: number;
+    }[];
+  }, {
+    team: Team;
+    score: number;
+    playerStats: {
+      player: Player;
+      cups: number;
+      defense: number;
+      ices: number;
+    }[];
+  }];  // Tuple type with team data directly in match
 }
 
 // Regular season match
@@ -40,7 +45,8 @@ export interface PlayoffMatch extends BaseMatch {
 
 export type Match = RegularMatch | PlayoffMatch;
 
-export interface Team {
+export interface Team { //each team has unique id, name can be the same, the assigned name should represent the team everywhere in the app
+  id: string;
   name: string;
   players: Player[];
 }

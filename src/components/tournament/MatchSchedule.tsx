@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Match, Player } from '@/types/tournament';
+import { useTournament } from '@/contexts/TournamentContext';
+import { Match } from '@/types/tournament';
 import {
   Select,
   SelectContent,
@@ -8,62 +8,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
-import MatchStatsView from './MatchStatsView';
-import { useToast } from "@/components/ui/use-toast";
-import { isRegularMatch, isPlayoffMatch } from '@/types/tournament';
 
-interface MatchScheduleProps {
-  matches: Match[];
-  onMatchUpdate?: (updatedMatch: Match) => void;
-}
+const MatchSchedule = () => {
+  const { tournament } = useTournament();
+  console.log("MatchSchedule - tournament:", tournament);
+  console.log("MatchSchedule - regularMatches:", tournament?.regularMatches);
 
-const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
-  const { toast } = useToast();
-  const [selectedRound, setSelectedRound] = useState<number>(1);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-
-  const rounds = [...new Set(matches.map(m => 
-    'round' in m ? m.round : m.series
-  ))].sort((a, b) => (a || 0) - (b || 0));
-
-  const formatTeamName = (players: { player: Player }[]) => {
-    if (!players || !Array.isArray(players)) return '-';
-    return players
-      .filter(p => p && p.player && p.player.name)
-      .map(p => p.player.name)
-      .join(' & ') || '-';
-  };
-
-  const roundMatches = matches.filter(match => 
-    isRegularMatch(match) ? match.round === selectedRound : match.series === selectedRound
-  );
-
-  const handleMatchUpdate = (updatedMatch: Match) => {
-    if (onMatchUpdate) {
-      onMatchUpdate(updatedMatch);
-      toast({
-        title: "Match Updated",
-        description: "The match statistics have been saved successfully.",
-      });
-      setSelectedMatch(null);
-    }
-  };
-
-  if (!matches || matches.length === 0) {
-    return (
-      <div className="bg-dashboard-card p-6 rounded-lg">
-        <h3 className="text-xl font-bold text-white mb-4">Tournament Schedule</h3>
-        <p className="text-dashboard-text">No matches scheduled yet.</p>
-      </div>
-    );
+  if (!tournament || !tournament.regularMatches?.length) {
+    console.log("MatchSchedule - returning null");
+    return null;
   }
+
+  const [selectedRound, setSelectedRound] = useState<number>(1);
+
+  const rounds = [...new Set(tournament.regularMatches.map(m => m.round))].sort((a, b) => a - b);
+  const roundMatches = tournament.regularMatches.filter(match => match.round === selectedRound);
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-white">Tournament Schedule</h3>
+        <h3 className="text-xl font-bold text-white">Match Schedule</h3>
         <Select
           value={selectedRound.toString()}
           onValueChange={(value) => setSelectedRound(Number(value))}
@@ -73,7 +37,7 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
           </SelectTrigger>
           <SelectContent>
             {rounds.map((round) => (
-              <SelectItem key={round} value={round?.toString() || "1"}>
+              <SelectItem key={round} value={round.toString()}>
                 Round {round}
               </SelectItem>
             ))}
@@ -81,54 +45,19 @@ const MatchSchedule = ({ matches, onMatchUpdate }: MatchScheduleProps) => {
         </Select>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="text-dashboard-text">Match</TableHead>
-            <TableHead>Team 1</TableHead>
-            <TableHead className="text-center">Score</TableHead>
-            <TableHead>Team 2</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {roundMatches.map((match, index) => (
-            <TableRow key={match.id} className="hover:bg-muted/5">
-              <TableCell className="text-dashboard-text font-medium">
-                #{index + 1}
-              </TableCell>
-              <TableCell className="text-white">
-                {formatTeamName(match.team1Players)}
-              </TableCell>
-              <TableCell className="text-center text-white">
-                {match.team1Score !== undefined ? match.team1Score : '-'} - {match.team2Score !== undefined ? match.team2Score : '-'}
-              </TableCell>
-              <TableCell className="text-white">
-                {formatTeamName(match.team2Players)}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedMatch(match)}
-                  className="hover:bg-dashboard-background"
-                >
-                  <Pencil className="h-5 w-5 text-dashboard-text" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      {selectedMatch && (
-        <MatchStatsView
-          match={selectedMatch}
-          isOpen={true}
-          onClose={() => setSelectedMatch(null)}
-          onSave={handleMatchUpdate}
-        />
-      )}
+      <div className="space-y-3">
+        {roundMatches.map((match, index) => (
+          <div key={index} className="flex items-center justify-between p-3 bg-dashboard-background rounded-lg">
+            <div className="flex-1 grid grid-cols-[1fr,auto,1fr] gap-4 items-center">
+              <div className="text-right text-white">{match.teams[0].team.name}</div>
+              <div className="text-center text-gray-400">
+                {`${match.teams[0].score} - ${match.teams[1].score}`}
+              </div>
+              <div className="text-left text-white">{match.teams[1].team.name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

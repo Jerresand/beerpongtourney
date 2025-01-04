@@ -1,18 +1,13 @@
 import Layout from "@/components/dashboard/Layout";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
 import TournamentCreator from "@/components/tournament/TournamentCreator";
+import { useTournament } from "@/contexts/TournamentContext";
+import MatchSchedule from "@/components/tournament/MatchSchedule";
+import TeamView from "@/components/tournament/TeamView";
 
 const Tournament = () => {
+  const { tournament } = useTournament();
+  console.log("Tournament page - tournament:", tournament);
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -20,7 +15,15 @@ const Tournament = () => {
           <h2 className="text-3xl font-bold text-white">Beerpong Tournament 🏆</h2>
           <p className="text-dashboard-text mt-2">Create and manage your tournaments.</p>
         </div>
-        <TournamentCreator />
+
+        {!tournament ? (
+          <TournamentCreator />
+        ) : (
+          <div className="space-y-6">
+            <MatchSchedule />
+            <TeamView />
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -25,27 +25,18 @@ interface MatchStats {
 
 const MatchStatsView = ({ match, isOpen, onClose, onSave }: MatchStatsProps) => {
   const { toast } = useToast();
-  const [team1Stats, setTeam1Stats] = useState<MatchStats[]>(
-    match.team1Players.map(p => ({
-      cups: p.cups || 0,
-      ices: p.ices || 0,
-      defense: p.defense || 0
+  const [teamStats, setTeamStats] = useState(match.teams.map(team => ({
+    score: team.score,
+    playerStats: team.playerStats.map(stat => ({
+      player: stat.player,
+      cups: stat.cups || 0,
+      ices: stat.ices || 0,
+      defense: stat.defense || 0
     }))
-  );
-  const [team2Stats, setTeam2Stats] = useState<MatchStats[]>(
-    match.team2Players.map(p => ({
-      cups: p.cups || 0,
-      ices: p.ices || 0,
-      defense: p.defense || 0
-    }))
-  );
-
-  // Calculate team scores from player cups
-  const team1Score = team1Stats.reduce((sum, stats) => sum + stats.cups, 0);
-  const team2Score = team2Stats.reduce((sum, stats) => sum + stats.cups, 0);
+  })));
 
   const handleSave = () => {
-    if (team1Score === team2Score) {
+    if (teamStats[0].score === teamStats[1].score) {
       toast({
         title: "Invalid Score",
         description: "Games cannot end in a tie.",
@@ -56,20 +47,10 @@ const MatchStatsView = ({ match, isOpen, onClose, onSave }: MatchStatsProps) => 
 
     onSave({
       ...match,
-      team1Score,
-      team2Score,
-      team1Players: match.team1Players.map((p, idx) => ({
-        ...p,
-        cups: team1Stats[idx].cups,
-        ices: team1Stats[idx].ices,
-        defense: team1Stats[idx].defense
-      })),
-      team2Players: match.team2Players.map((p, idx) => ({
-        ...p,
-        cups: team2Stats[idx].cups,
-        ices: team2Stats[idx].ices,
-        defense: team2Stats[idx].defense
-      }))
+      teams: [
+        { ...match.teams[0], score: teamStats[0].score, playerStats: teamStats[0].playerStats },
+        { ...match.teams[1], score: teamStats[1].score, playerStats: teamStats[1].playerStats }
+      ]
     });
     onClose();
   };
@@ -86,12 +67,12 @@ const MatchStatsView = ({ match, isOpen, onClose, onSave }: MatchStatsProps) => 
           <div className="flex items-center justify-center gap-4">
             <div className="text-center">
               <h3 className="text-xs text-gray-400">Team 1</h3>
-              <span className="text-xl font-bold">{team1Score}</span>
+              <span className="text-xl font-bold">{teamStats[0].score}</span>
             </div>
             <span className="text-sm text-gray-400">vs</span>
             <div className="text-center">
               <h3 className="text-xs text-gray-400">Team 2</h3>
-              <span className="text-xl font-bold">{team2Score}</span>
+              <span className="text-xl font-bold">{teamStats[1].score}</span>
             </div>
           </div>
           
@@ -103,35 +84,34 @@ const MatchStatsView = ({ match, isOpen, onClose, onSave }: MatchStatsProps) => 
 
         {/* Player Stats - Reduced height */}
         <div className="grid grid-cols-2 gap-4 max-h-[40vh] overflow-y-auto pr-2">
-          <div className="space-y-2">
-            {match.team1Players.map((p, idx) => (
-              <PlayerStatsForm
-                key={p.player.name}
-                player={p.player}
-                stats={team1Stats[idx]}
-                onStatsChange={(field, value) => {
-                  const newStats = [...team1Stats];
-                  newStats[idx] = { ...newStats[idx], [field]: Math.max(0, value) };
-                  setTeam1Stats(newStats);
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="space-y-2">
-            {match.team2Players.map((p, idx) => (
-              <PlayerStatsForm
-                key={p.player.name}
-                player={p.player}
-                stats={team2Stats[idx]}
-                onStatsChange={(field, value) => {
-                  const newStats = [...team2Stats];
-                  newStats[idx] = { ...newStats[idx], [field]: Math.max(0, value) };
-                  setTeam2Stats(newStats);
-                }}
-              />
-            ))}
-          </div>
+          {match.teams.map((team, teamIndex) => (
+            <div key={team.team.id} className="space-y-2">
+              {team.playerStats.map((playerStat, playerIndex) => (
+                <PlayerStatsForm
+                  key={playerStat.player.id}
+                  player={playerStat.player}
+                  stats={teamStats[teamIndex].playerStats[playerIndex]}
+                  onStatsChange={(field, value) => {
+                    setTeamStats(prev => {
+                      const newStats = [...prev];
+                      newStats[teamIndex] = {
+                        ...newStats[teamIndex],
+                        playerStats: newStats[teamIndex].playerStats.map((stat, idx) =>
+                          idx === playerIndex ? { ...stat, [field]: Math.max(0, value) } : stat
+                        ),
+                        // Update score when cups change
+                        score: field === 'cups' 
+                          ? newStats[teamIndex].playerStats.reduce((sum, s, i) => 
+                              sum + (i === playerIndex ? value : s.cups), 0)
+                          : newStats[teamIndex].score
+                      };
+                      return newStats;
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          ))}
         </div>
 
         {/* Buttons - more compact */}
