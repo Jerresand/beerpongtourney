@@ -1,33 +1,21 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Match, Player } from '@/types/tournament';
-import { calculateRegularStandings } from "@/utils/tournamentUtils";
-
-interface PlayerStats {
-  player: Player;
-  totalCups: number;
-  totalIces: number;
-  totalDefense: number;
-  gamesPlayed: number;
-  cupsPerGame: number;
-  icesPerGame: number;
-  defensePerGame: number;
-}
 
 interface StatsLeaderboardProps {
   matches: Match[];
 }
 
 const StatsLeaderboardView = ({ matches }: StatsLeaderboardProps) => {
-  // Get unique players from all matches
   const uniquePlayers = new Map<string, Player>();
   
   matches.forEach(match => {
-    [...match.team1Players, ...match.team2Players].forEach(({ player }) => {
-      uniquePlayers.set(player.name, player);
+    match.teams.forEach(team => {
+      team.playerStats.forEach(({ player }) => {
+        uniquePlayers.set(player.id, player);
+      });
     });
   });
 
-  // Convert to array and sort by name
   const players = Array.from(uniquePlayers.values())
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -89,4 +77,4 @@ const StatsLeaderboardView = ({ matches }: StatsLeaderboardProps) => {
   );
 };
 
-export default StatsLeaderboardView; 
+export default StatsLeaderboardView;

@@ -22,6 +22,7 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
   const handleCreateTeam = () => {
     if (selectedPlayers.length === 2) {
       const newTeam: Team = {
+        id: crypto.randomUUID(),
         name: `${selectedPlayers[0].name} & ${selectedPlayers[1].name}`,
         players: selectedPlayers
       };
@@ -37,23 +38,20 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
   };
 
   const handleRandomTeams = () => {
-    // Keep track of all existing teams
     const existingTeams = [...teams];
+    const shuffledPlayers = [...availablePlayers].sort(() => Math.random() - 0.5);
     
-    // Create a shuffled copy of available players only
-    const shuffledPlayers = [...availablePlayers]
-      .sort(() => Math.random() - 0.5);
-    
-    // Create teams from shuffled players
     const newTeams: Team[] = [];
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
-      newTeams.push({
-        name: `${shuffledPlayers[i].name} & ${shuffledPlayers[i + 1].name}`,
-        players: [shuffledPlayers[i], shuffledPlayers[i + 1]]
-      });
+      if (i + 1 < shuffledPlayers.length) {
+        newTeams.push({
+          id: crypto.randomUUID(),
+          name: `${shuffledPlayers[i].name} & ${shuffledPlayers[i + 1].name}`,
+          players: [shuffledPlayers[i], shuffledPlayers[i + 1]]
+        });
+      }
     }
     
-    // Update state with all teams
     setTeams([...existingTeams, ...newTeams]);
     setAvailablePlayers([]);
     setSelectedPlayers([]);
@@ -133,4 +131,4 @@ const DoublesTeamCreator = ({ players, onTeamsCreated }: DoublesTeamCreatorProps
   );
 };
 
-export default DoublesTeamCreator; 
+export default DoublesTeamCreator;

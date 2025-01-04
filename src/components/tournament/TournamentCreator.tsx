@@ -49,7 +49,11 @@ const TournamentCreator = () => {
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
-      setPlayers([...players, { name: newPlayerName.trim() }]);
+      setPlayers([...players, { 
+        id: crypto.randomUUID(),
+        name: newPlayerName.trim(),
+        gamesPlayed: 0
+      }]);
       setNewPlayerName("");
     }
   };
@@ -148,15 +152,17 @@ const TournamentCreator = () => {
   };
 
   // Helper function to generate teams for doubles
-  const generateTeams = (players: Player[], format: "singles" | "doubles"): { name: string, players: Player[] }[] => {
-    const teams = [];
+  const generateTeams = (players: Player[], format: "singles" | "doubles"): Team[] => {
+    const teams: Team[] = [];
     if (format === "doubles") {
       for (let i = 0; i < players.length; i += 2) {
-        const teamName = `${players[i].name} & ${players[i + 1].name}`;
-        teams.push({
-          name: teamName,
-          players: [players[i], players[i + 1]]
-        });
+        if (i + 1 < players.length) {
+          teams.push({
+            id: crypto.randomUUID(),
+            name: `${players[i].name} & ${players[i + 1].name}`,
+            players: [players[i], players[i + 1]]
+          });
+        }
       }
     }
     return teams;
