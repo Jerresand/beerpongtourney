@@ -20,7 +20,7 @@ interface MatchScheduleProps {
   onMatchUpdate?: (match: Match, updatedTeams: Team[], updatedPlayers: Player[]) => void;
 }
 
-const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMatchUpdate }) => {
+const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament, onMatchUpdate }) => {
   const { toast } = useToast();
   const [selectedRound, setSelectedRound] = useState<number>(1);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -28,16 +28,23 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
 
   // Initialize team map for faster lookups
   useEffect(() => {
+    if (!tournament?.teams) {
+      console.warn('Tournament or teams not available yet');
+      return;
+    }
+
     const map = new Map<string, Team>();
     tournament.teams.forEach(team => {
-      map.set(team.id, team);
-      console.log(`Mapping team ID ${team.id} to team name "${team.name}"`);
+      if (team?.id) {
+        map.set(team.id, team);
+        console.log(`Mapping team ID ${team.id} to team name "${team.name}"`);
+      }
     });
     setTeamMap(map);
 
     // Debug: Log all matches and their team IDs
-    matches.forEach(match => {
-      if (!match.team1Id || !match.team2Id) {
+    matches?.forEach(match => {
+      if (!match?.team1Id || !match?.team2Id) {
         console.error('Match with missing team IDs:', match);
       }
       console.log(`Match ${match.id}:`, {
@@ -47,12 +54,12 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
         team2Name: map.get(match.team2Id)?.name || 'Unknown'
       });
     });
-  }, [tournament.teams, matches]);
+  }, [tournament?.teams, matches]);
 
   // Get unique rounds from matches
-  const rounds = Array.from(new Set(matches.map(m => 
+  const rounds = Array.from(new Set(matches?.map(m => 
     isRegularMatch(m) ? m.round : m.series
-  ))).sort((a, b) => (a || 0) - (b || 0));
+  ) || [1])).sort((a, b) => (a || 0) - (b || 0));
 
   // Get team name by ID with error handling
   const getTeamName = (teamId: string): string => {
@@ -72,9 +79,9 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
   };
 
   // Filter matches for current round
-  const currentRoundMatches = matches.filter(match => 
+  const currentRoundMatches = matches?.filter(match => 
     isRegularMatch(match) ? match.round === selectedRound : match.series === selectedRound
-  );
+  ) || [];
 
   // Handle match update
   const handleMatchUpdate = (updatedMatch: Match, updatedTeams: Team[], updatedPlayers: Player[]) => {
@@ -82,7 +89,9 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
       // Update team map with new team data
       const newTeamMap = new Map(teamMap);
       updatedTeams.forEach(team => {
-        newTeamMap.set(team.id, team);
+        if (team?.id) {
+          newTeamMap.set(team.id, team);
+        }
       });
       setTeamMap(newTeamMap);
 
