@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Match, Team, Tournament } from '@/types/tournament';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface TeamViewProps {
   tournament: Tournament;
@@ -66,7 +66,7 @@ const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
                   <Input
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
-                    className="max-w-[200px]"
+                    className="max-w-[200px] bg-white text-black"
                     placeholder="Enter new name"
                   />
                 ) : (
