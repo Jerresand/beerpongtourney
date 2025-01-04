@@ -37,6 +37,9 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
 
     // Debug: Log all matches and their team IDs
     matches.forEach(match => {
+      if (!match.team1Id || !match.team2Id) {
+        console.error('Match with missing team IDs:', match);
+      }
       console.log(`Match ${match.id}:`, {
         team1Id: match.team1Id,
         team2Id: match.team2Id,
@@ -53,6 +56,11 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches, tournament, onMa
 
   // Get team name by ID with error handling
   const getTeamName = (teamId: string): string => {
+    if (!teamId) {
+      console.error('Invalid team ID provided:', teamId);
+      return 'Unknown Team';
+    }
+
     const team = teamMap.get(teamId);
     if (!team) {
       console.warn(`Team with ID ${teamId} not found in team map. Available teams:`, 
