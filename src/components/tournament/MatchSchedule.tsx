@@ -9,20 +9,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const MatchSchedule = () => {
-  const { tournament } = useTournament();
-  console.log("MatchSchedule - tournament:", tournament);
-  console.log("MatchSchedule - regularMatches:", tournament?.regularMatches);
+interface MatchScheduleProps {
+  matches?: Match[];
+  onMatchUpdate?: (match: Match) => void;
+}
 
-  if (!tournament || !tournament.regularMatches?.length) {
-    console.log("MatchSchedule - returning null");
+const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches: propMatches, onMatchUpdate }) => {
+  const { tournament } = useTournament();
+  const matches = propMatches || tournament?.regularMatches || [];
+  
+  if (!matches.length) {
     return null;
   }
 
   const [selectedRound, setSelectedRound] = useState<number>(1);
 
-  const rounds = [...new Set(tournament.regularMatches.map(m => m.round))].sort((a, b) => a - b);
-  const roundMatches = tournament.regularMatches.filter(match => match.round === selectedRound);
+  const rounds = [...new Set(matches.map(m => 'round' in m ? m.round : 1))].sort((a, b) => a - b);
+  const roundMatches = matches.filter(match => 'round' in match ? match.round === selectedRound : true);
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">

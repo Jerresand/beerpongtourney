@@ -28,27 +28,30 @@ export const calculateRegularStandings = (tournament: Tournament | null): Standi
     });
   });
 
-  // For each match, give wins/losses based on score
+  // For each match, update stats based on team scores
   tournament.regularMatches.forEach(match => {
-    if (match.team1Score > match.team2Score) {
-      match.team1Players.forEach(p => {
-        const stats = playerStats.get(p.player.name)!;
+    const team1Score = match.teams[0].score;
+    const team2Score = match.teams[1].score;
+
+    if (team1Score > team2Score) {
+      match.teams[0].playerStats.forEach(stat => {
+        const stats = playerStats.get(stat.player.name)!;
         stats.wins++;
         stats.matchesPlayed++;
       });
-      match.team2Players.forEach(p => {
-        const stats = playerStats.get(p.player.name)!;
+      match.teams[1].playerStats.forEach(stat => {
+        const stats = playerStats.get(stat.player.name)!;
         stats.losses++;
         stats.matchesPlayed++;
       });
-    } else if (match.team2Score > match.team1Score) {
-      match.team2Players.forEach(p => {
-        const stats = playerStats.get(p.player.name)!;
+    } else if (team2Score > team1Score) {
+      match.teams[1].playerStats.forEach(stat => {
+        const stats = playerStats.get(stat.player.name)!;
         stats.wins++;
         stats.matchesPlayed++;
       });
-      match.team1Players.forEach(p => {
-        const stats = playerStats.get(p.player.name)!;
+      match.teams[0].playerStats.forEach(stat => {
+        const stats = playerStats.get(stat.player.name)!;
         stats.losses++;
         stats.matchesPlayed++;
       });
@@ -81,6 +84,7 @@ export const generateTeams = (players: Player[], format: "singles" | "doubles"):
   const teams: Team[] = [];
   for (let i = 0; i < players.length; i += 2) {
     teams.push({
+      id: crypto.randomUUID(),
       name: `${players[i].name} & ${players[i + 1].name}`,
       players: [players[i], players[i + 1]]
     });

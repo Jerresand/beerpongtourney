@@ -4,7 +4,7 @@ interface PlayoffBracketProps {
   matches: Match[];
 }
 
-const PlayoffBracket = ({ matches }: PlayoffBracketProps) => {
+const PlayoffBracket: React.FC<PlayoffBracketProps> = ({ matches }) => {
   return (
     <div>
       {/* TODO: Implement playoff bracket visualization */}
@@ -13,4 +13,4 @@ const PlayoffBracket = ({ matches }: PlayoffBracketProps) => {
   );
 };
 
-export default PlayoffBracket; 
+export default PlayoffBracket;
