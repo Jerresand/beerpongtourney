@@ -1,12 +1,14 @@
-export interface Player {
+export interface Player { //stores all individual stats for each player and has a unique id, name does not need to be unique
+  id: string;
   name: string;
   totalCups?: number;
   iced?: number;
   defense?: number;
-}
+  gamesPlayed: number;
+}[];
 
 // Base match type
-export interface BaseMatch {
+export interface BaseMatch { // contains all the needed variables for all kinds of matches
   id: string;
   team1Score: number;
   team2Score: number;
