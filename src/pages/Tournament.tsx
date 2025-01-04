@@ -5,8 +5,20 @@ import MatchSchedule from "@/components/tournament/MatchSchedule";
 import TeamView from "@/components/tournament/TeamView";
 
 const Tournament = () => {
-  const { tournament } = useTournament();
+  const { tournament, updateTournament } = useTournament();
   console.log("Tournament page - tournament:", tournament);
+
+  const handleTeamNameUpdate = (teamId: string, newName: string) => {
+    if (!tournament) return;
+    
+    const updatedTournament = {
+      ...tournament,
+      teams: tournament.teams?.map(team => 
+        team.id === teamId ? { ...team, name: newName } : team
+      )
+    };
+    updateTournament(updatedTournament);
+  };
 
   return (
     <Layout>
@@ -21,7 +33,10 @@ const Tournament = () => {
         ) : (
           <div className="space-y-6">
             <MatchSchedule />
-            <TeamView />
+            <TeamView 
+              matches={tournament.regularMatches}
+              onTeamNameUpdate={handleTeamNameUpdate}
+            />
           </div>
         )}
       </div>
