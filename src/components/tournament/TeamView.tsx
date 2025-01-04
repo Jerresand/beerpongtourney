@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Match, Team, Tournament } from '@/types/tournament';
+import { useToast } from "@/components/ui/use-toast";
 
 interface TeamViewProps {
   tournament: Tournament;
@@ -10,33 +11,30 @@ interface TeamViewProps {
 }
 
 const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
-  const handleNameChange = (teamId: string, newName: string) => {
-    // Get the current tournament data
-    const tournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-    const tournamentIndex = tournaments.findIndex((t: Tournament) => t.id === tournament.id);
-    
-    if (tournamentIndex === -1) {
-      console.error('Tournament not found');
-      return;
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [newTeamName, setNewTeamName] = useState('');
+  const { toast } = useToast();
+
+  const handleEditClick = (team: Team) => {
+    setEditingTeamId(team.id);
+    setNewTeamName(team.name);
+  };
+
+  const handleSave = (teamId: string) => {
+    if (newTeamName.trim()) {
+      onTeamNameUpdate(teamId, newTeamName.trim());
+      setEditingTeamId(null);
+      setNewTeamName('');
+      toast({
+        title: "Team name updated",
+        description: "The team name has been successfully updated.",
+      });
     }
+  };
 
-    // Update the team name in the tournament
-    const updatedTournament = {
-      ...tournaments[tournamentIndex],
-      teams: tournaments[tournamentIndex].teams.map((t: Team) =>
-        t.id === teamId ? { ...t, name: newName } : t
-      )
-    };
-
-    // Save the updated tournament
-    tournaments[tournamentIndex] = updatedTournament;
-    localStorage.setItem('activeTournaments', JSON.stringify(tournaments));
-
-    // Notify parent component
-    onTeamNameUpdate(teamId, newName);
-
-    // Force a re-render by updating the URL
-    window.dispatchEvent(new Event('storage'));
+  const handleCancel = () => {
+    setEditingTeamId(null);
+    setNewTeamName('');
   };
 
   if (!tournament.teams || tournament.teams.length === 0) {
@@ -64,7 +62,16 @@ const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
           {tournament.teams.map((team) => (
             <TableRow key={team.id}>
               <TableCell key={`${team.id}-name`} className="text-white">
-                {team.name}
+                {editingTeamId === team.id ? (
+                  <Input
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    className="max-w-[200px]"
+                    placeholder="Enter new name"
+                  />
+                ) : (
+                  team.name
+                )}
               </TableCell>
               <TableCell key={`${team.id}-players`} className="text-dashboard-text">
                 {team.players.map(p => p.name).join(' & ')}
@@ -76,11 +83,32 @@ const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
               </TableCell>
               <TableCell key={`${team.id}-actions`}>
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="New team name"
-                    className="max-w-[200px]"
-                    onChange={(e) => handleNameChange(team.id, e.target.value)}
-                  />
+                  {editingTeamId === team.id ? (
+                    <>
+                      <Button 
+                        variant="default"
+                        onClick={() => handleSave(team.id)}
+                        size="sm"
+                      >
+                        Save
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={handleCancel}
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleEditClick(team)}
+                      size="sm"
+                    >
+                      Edit Name
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
