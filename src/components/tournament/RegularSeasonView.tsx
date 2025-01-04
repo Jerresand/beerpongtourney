@@ -40,6 +40,32 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
     window.dispatchEvent(new Event('storage'));
   };
 
+  const handleTeamNameUpdate = (teamId: string, newName: string) => {
+    // Get the current tournament data
+    const tournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
+    const tournamentIndex = tournaments.findIndex((t: Tournament) => t.id === tournament.id);
+    
+    if (tournamentIndex === -1) {
+      console.error('Tournament not found');
+      return;
+    }
+
+    // Update the team name in the tournament's teams array
+    const updatedTournament = {
+      ...tournaments[tournamentIndex],
+      teams: tournaments[tournamentIndex].teams.map((team: Team) =>
+        team.id === teamId ? { ...team, name: newName } : team
+      )
+    };
+
+    // Save the updated tournament
+    tournaments[tournamentIndex] = updatedTournament;
+    localStorage.setItem('activeTournaments', JSON.stringify(tournaments));
+
+    // Force a re-render by updating the URL
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <div className="space-y-6">
       <StandingsTable standings={standings} />
@@ -50,12 +76,10 @@ const RegularSeasonView = ({ tournament }: RegularSeasonViewProps) => {
       />
       <TeamView 
         tournament={tournament} 
-        onTeamNameUpdate={(teamId, name) => {
-          // Handle team name update
-        }} 
+        onTeamNameUpdate={handleTeamNameUpdate}
       />
     </div>
   );
 };
 
-export default RegularSeasonView; 
+export default RegularSeasonView;
