@@ -8,9 +8,14 @@ import { Standing } from '@/utils/tournamentUtils';
 interface RegularSeasonViewProps {
   tournament: Tournament;
   onTournamentUpdate: (tournament: Tournament) => void;
+  isPlayoffsStarted?: boolean;
 }
 
-const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({ tournament, onTournamentUpdate }) => {
+const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({ 
+  tournament, 
+  onTournamentUpdate,
+  isPlayoffsStarted = false 
+}) => {
   const handleMatchUpdate = (updatedMatch: Match, updatedTeams: Team[], updatedPlayers: Player[]) => {
     // Update the tournament with new data
     const updatedTournament: Tournament = {
@@ -59,6 +64,7 @@ const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({ tournament, onTou
         matches={tournament.regularMatches}
         tournament={tournament}
         onMatchUpdate={handleMatchUpdate}
+        isEditingDisabled={isPlayoffsStarted}
       />
       <StandingsTable standings={standings} />
       <StatisticsTable players={tournament.players} />

@@ -131,7 +131,7 @@ const TournamentView = () => {
                     : "bg-gray-600 cursor-not-allowed"
                 } text-white`}
               >
-                Start Playoffs
+                {tournament.playoffMatches.length > 0 ? "Back to Playoffs" : "Start Playoffs"}
               </Button>
             )}
           </div>
@@ -153,6 +153,7 @@ const TournamentView = () => {
           <RegularSeasonView 
             tournament={tournament}
             onTournamentUpdate={handleTournamentUpdate}
+            isPlayoffsStarted={tournament.playoffMatches.length > 0}
           />
         )}
 
