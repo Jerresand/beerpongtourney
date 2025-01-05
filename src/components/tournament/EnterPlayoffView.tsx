@@ -18,24 +18,24 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
   // Get available playoff sizes based on team count
   const getAvailablePlayoffSizes = () => {
     const teamCount = tournament.teams.length;
-    const sizes = ["all"];
+    const sizes: string[] = [];
     
     if (teamCount >= 16) sizes.push("16");
     if (teamCount >= 8) sizes.push("8");
     if (teamCount >= 4) sizes.push("4");
     if (teamCount >= 2) sizes.push("2");
     
+    // Add the actual team count if it's not already in the list and is a power of 2
+    const isPowerOfTwo = (n: number) => Math.log2(n) % 1 === 0;
+    if (isPowerOfTwo(teamCount) && !sizes.includes(teamCount.toString())) {
+      sizes.push(teamCount.toString());
+    }
+    
     return sizes;
   };
 
   // Get descriptive text for playoff format
   const getPlayoffFormatDescription = (size: string) => {
-    const teamCount = tournament.teams.length;
-    
-    if (size === "all") {
-      return `All ${teamCount} teams qualify. #1 seed plays #${teamCount}, #2 plays #${teamCount-1}, etc.`;
-    }
-    
     const numTeams = parseInt(size);
     const rounds = Math.log2(numTeams);
     let description = `Top ${numTeams} teams qualify based on regular season record. `;
@@ -62,36 +62,47 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
       return (a.stats?.losses || 0) - (b.stats?.losses || 0);
     });
 
-    if (selectedPlayoffSize === "all") return sortedTeams;
     return sortedTeams.slice(0, parseInt(selectedPlayoffSize));
+  };
+
+  // Create playoff matchups with proper seeding
+  const createPlayoffMatchups = (teams: Team[]): PlayoffMatch[] => {
+    const matches: PlayoffMatch[] = [];
+    const numTeams = teams.length;
+    
+    // Create matchups where highest seed plays lowest seed
+    for (let i = 0; i < numTeams / 2; i++) {
+      matches.push({
+        id: crypto.randomUUID(),
+        team1Id: teams[i].id, // Higher seed
+        team2Id: teams[numTeams - 1 - i].id, // Lower seed
+        team1Score: 0,
+        team2Score: 0,
+        team1PlayerStats: [],
+        team2PlayerStats: [],
+        isComplete: false,
+        isPlayoff: true,
+        series: 1
+      });
+    }
+    
+    return matches;
   };
 
   const handleStartPlayoffs = () => {
     const qualifiedTeams = getQualifiedTeams();
-    const initialPlayoffMatches: PlayoffMatch[] = [];
+    const initialPlayoffMatches = createPlayoffMatchups(qualifiedTeams);
 
-    // Create initial playoff matches based on seeding
-    for (let i = 0; i < qualifiedTeams.length; i += 2) {
-      if (i + 1 < qualifiedTeams.length) {
-        initialPlayoffMatches.push({
-          id: crypto.randomUUID(),
-          team1Id: qualifiedTeams[i].id,
-          team2Id: qualifiedTeams[i + 1].id,
-          team1Score: 0,
-          team2Score: 0,
-          team1PlayerStats: [],
-          team2PlayerStats: [],
-          isComplete: false,
-          isPlayoff: true,
-          series: 1 // First round
-        });
-      }
-    }
+    // Create a map of team IDs to their seeds
+    const seedMap = Object.fromEntries(
+      qualifiedTeams.map((team, index) => [team.id, index + 1])
+    );
 
     const updatedTournament: Tournament = {
       ...tournament,
       currentPhase: "playoffs" as const,
-      playoffMatches: initialPlayoffMatches
+      playoffMatches: initialPlayoffMatches,
+      playoffSeedMap: seedMap
     };
 
     onTournamentUpdate(updatedTournament);
@@ -121,7 +132,7 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
               <SelectContent className="bg-dashboard-background text-dashboard-text">
                 {availablePlayoffSizes.map((size) => (
                   <SelectItem key={size} value={size}>
-                    {size === "all" ? "All Teams" : `Top ${size} Teams`}
+                    {`Top ${size} Teams`}
                   </SelectItem>
                 ))}
               </SelectContent>

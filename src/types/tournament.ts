@@ -70,6 +70,7 @@ export interface Tournament {
   currentPhase: "regular" | "playoffs";
   createdAt: string;
   lastVisited?: string;
+  playoffSeedMap?: Record<string, number>; // Maps team IDs to their playoff seeds
 }
 
 export const isRegularMatch = (match: Match): match is RegularMatch => !match.isPlayoff;
