@@ -3,13 +3,12 @@ import { useParams } from "react-router-dom";
 import Layout from "@/components/dashboard/Layout";
 import { Tournament } from "@/types/tournament";
 import RegularSeasonView from "@/components/tournament/RegularSeasonView";
+import EnterPlayoffView from "@/components/tournament/EnterPlayoffView";
 import PlayoffView from "@/components/tournament/PlayoffView";
-import StatisticsTable from "@/components/tournament/StatisticsTable";
 import TeamView from "@/components/tournament/TeamView";
-import StandingsTable from "@/components/tournament/StandingsTable";
-import { Standing } from "@/utils/tournamentUtils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft } from "lucide-react";
 
 const TournamentView = () => {
   const { id } = useParams();
@@ -61,25 +60,33 @@ const TournamentView = () => {
     setTournament(updatedTournament);
   };
 
-  // Calculate standings
-  const standings: Standing[] = tournament?.teams.map(team => ({
-    name: team.name,
-    wins: team.stats?.wins || 0,
-    losses: team.stats?.losses || 0,
-    winPercentage: team.stats?.gamesPlayed 
-      ? (team.stats.wins / team.stats.gamesPlayed) * 100 
-      : 0,
-    matchesPlayed: team.stats?.gamesPlayed || 0,
-    points: team.stats?.wins || 0,
-    pointsAgainst: team.stats?.losses || 0
-  })).sort((a, b) => {
-    // First, sort by wins
-    if (a.wins !== b.wins) {
-      return b.wins - a.wins;
-    }
-    // If wins are equal, sort by fewer losses (prioritize teams that played fewer games)
-    return a.losses - b.losses;
-  }) || [];
+  // Check if all regular season games are completed
+  const areAllGamesPlayed = () => {
+    if (!tournament) return false;
+    return tournament.regularMatches.every(match => 
+      match.team1Score !== undefined && 
+      match.team2Score !== undefined && 
+      (match.team1Score > 0 || match.team2Score > 0)  // At least one team must have scored
+    );
+  };
+
+  const handleStartPlayoffs = () => {
+    if (!tournament || !areAllGamesPlayed()) return;
+    
+    const updatedTournament: Tournament = {
+      ...tournament,
+      currentPhase: "playoffs" as const
+    };
+
+    // Update localStorage
+    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournaments = tournaments.map((t: Tournament) =>
+      t.id === tournament.id ? updatedTournament : t
+    );
+    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
+
+    setTournament(updatedTournament);
+  };
 
   if (!tournament) return <div>Tournament not found</div>;
 
@@ -93,28 +100,62 @@ const TournamentView = () => {
               {tournament.format} - {tournament.type}
             </p>
           </div>
-          <Button
-            onClick={() => setShowTeamView(true)}
-            className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
-          >
-            Edit Teams
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowTeamView(true)}
+              className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
+            >
+              Edit Teams
+            </Button>
+            {tournament.currentPhase === "playoffs" ? (
+              <Button
+                onClick={() => {
+                  const updatedTournament: Tournament = {
+                    ...tournament,
+                    currentPhase: "regular" as const
+                  };
+                  handleTournamentUpdate(updatedTournament);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Regular Season
+              </Button>
+            ) : (
+              <Button
+                disabled={!areAllGamesPlayed()}
+                onClick={handleStartPlayoffs}
+                className={`${
+                  areAllGamesPlayed() 
+                    ? "bg-green-600 hover:bg-green-700" 
+                    : "bg-gray-600 cursor-not-allowed"
+                } text-white`}
+              >
+                {tournament.playoffMatches.length > 0 ? "Back to Playoffs" : "Start Playoffs"}
+              </Button>
+            )}
+          </div>
         </div>
         
         {tournament.currentPhase === "playoffs" ? (
-          <PlayoffView 
-            tournament={tournament}
-            onTournamentUpdate={handleTournamentUpdate}
-          />
+          tournament.playoffMatches.length > 0 ? (
+            <PlayoffView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          ) : (
+            <EnterPlayoffView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          )
         ) : (
           <RegularSeasonView 
             tournament={tournament}
             onTournamentUpdate={handleTournamentUpdate}
+            isPlayoffsStarted={tournament.playoffMatches.length > 0}
           />
         )}
-        
-        <StandingsTable standings={standings} />
-        <StatisticsTable players={tournament.players} />
 
         <Dialog open={showTeamView} onOpenChange={setShowTeamView}>
           <DialogContent className="bg-dashboard-background text-dashboard-text max-w-4xl max-h-[80vh] overflow-hidden">

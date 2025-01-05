@@ -45,12 +45,18 @@ const StandingsTable = ({ standings }: StandingsTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {standings?.map((standing) => (
-              <TableRow key={standing.name}>
-                <TableCell className="text-white font-medium">{standing.name}</TableCell>
-                <TableCell className="text-dashboard-text">{standing.wins}</TableCell>
-                <TableCell className="text-dashboard-text">{standing.losses}</TableCell>
-                <TableCell className="text-dashboard-text">
+            {standings?.map((standing, index) => (
+              <TableRow key={standing.name} className={`hover:bg-muted/5 ${index === 0 ? "bg-[#FFD700]/30" : ""}`}>
+                <TableCell className={index === 0 ? "text-[#FFD700] font-bold" : "text-white font-medium"}>
+                  {standing.name}
+                </TableCell>
+                <TableCell className={index === 0 ? "text-[#FFD700] font-bold" : "text-dashboard-text"}>
+                  {standing.wins}
+                </TableCell>
+                <TableCell className={index === 0 ? "text-[#FFD700] font-bold" : "text-dashboard-text"}>
+                  {standing.losses}
+                </TableCell>
+                <TableCell className={index === 0 ? "text-[#FFD700] font-bold" : "text-dashboard-text"}>
                   {standing.winPercentage.toFixed(1)}%
                 </TableCell>
               </TableRow>

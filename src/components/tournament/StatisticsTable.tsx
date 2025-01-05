@@ -18,8 +18,8 @@ interface StatisticsTableProps {
 }
 
 const StatisticsTable: React.FC<StatisticsTableProps> = ({ players }) => {
-  const [isVisible, setIsVisible] = useState(false);
   const [currentStat, setCurrentStat] = useState<StatType>('cups');
+  const [isVisible, setIsVisible] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
   const getSortedPlayers = (stat: StatType) => {
@@ -123,14 +123,14 @@ const StatisticsTable: React.FC<StatisticsTableProps> = ({ players }) => {
             </TableHeader>
             <TableBody>
               {getDisplayPlayers(getSortedPlayers(currentStat)).map((player, index) => (
-                <TableRow key={player.id} className="hover:bg-muted/5">
-                  <TableCell className="text-dashboard-text font-medium">
+                <TableRow key={player.id} className={`hover:bg-muted/5 ${index === 0 ? "bg-[#FFD700]/30" : ""}`}>
+                  <TableCell className={`font-medium ${index === 0 ? "text-[#FFD700]" : "text-dashboard-text"}`}>
                     #{index + 1}
                   </TableCell>
-                  <TableCell className="text-white">
+                  <TableCell className={index === 0 ? "text-[#FFD700] font-bold" : "text-white"}>
                     {player.name}
                   </TableCell>
-                  <TableCell className="text-white text-right">
+                  <TableCell className={`text-right ${index === 0 ? "text-[#FFD700] font-bold" : "text-white"}`}>
                     {getStatValue(player, currentStat)}
                   </TableCell>
                 </TableRow>

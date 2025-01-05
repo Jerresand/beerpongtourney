@@ -18,9 +18,15 @@ interface MatchScheduleProps {
   matches: Match[];
   tournament: Tournament;
   onMatchUpdate?: (match: Match, updatedTeams: Team[], updatedPlayers: Player[]) => void;
+  isEditingDisabled?: boolean;
 }
 
-const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament, onMatchUpdate }) => {
+const MatchSchedule: React.FC<MatchScheduleProps> = ({ 
+  matches = [], 
+  tournament, 
+  onMatchUpdate,
+  isEditingDisabled = false 
+}) => {
   const { toast } = useToast();
   const [selectedRound, setSelectedRound] = useState<number>(1);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -37,23 +43,9 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament,
     tournament.teams.forEach(team => {
       if (team?.id) {
         map.set(team.id, team);
-        console.log(`Mapping team ID ${team.id} to team name "${team.name}"`);
       }
     });
     setTeamMap(map);
-
-    // Debug: Log all matches and their team IDs
-    matches?.forEach(match => {
-      if (!match?.team1Id || !match?.team2Id) {
-        console.error('Match with missing team IDs:', match);
-      }
-      console.log(`Match ${match.id}:`, {
-        team1Id: match.team1Id,
-        team2Id: match.team2Id,
-        team1Name: map.get(match.team1Id)?.name || 'Unknown',
-        team2Name: map.get(match.team2Id)?.name || 'Unknown'
-      });
-    });
   }, [tournament?.teams, matches]);
 
   // Get unique rounds from matches
@@ -70,9 +62,7 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament,
 
     const team = teamMap.get(teamId);
     if (!team) {
-      console.warn(`Team with ID ${teamId} not found in team map. Available teams:`, 
-        Array.from(teamMap.entries()).map(([id, team]) => ({ id, name: team.name }))
-      );
+      console.warn(`Team with ID ${teamId} not found in team map.`);
       return 'Unknown Team';
     }
     return team.name;
@@ -141,14 +131,16 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament,
             <TableHead>Team 1</TableHead>
             <TableHead className="text-center">Score</TableHead>
             <TableHead>Team 2</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            {!isEditingDisabled && (
+              <TableHead className="text-right">Actions</TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {currentRoundMatches.map((match, index) => {
             const team1Name = getTeamName(match.team1Id);
             const team2Name = getTeamName(match.team2Id);
-            
+
             return (
               <TableRow key={match.id} className="hover:bg-muted/5">
                 <TableCell className="text-dashboard-text font-medium">
@@ -163,16 +155,18 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({ matches = [], tournament,
                 <TableCell className="text-white">
                   {team2Name}
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSelectedMatch(match)}
-                    className="hover:bg-dashboard-background"
-                  >
-                    <Pencil className="h-5 w-5 text-dashboard-text" />
-                  </Button>
-                </TableCell>
+                {!isEditingDisabled && (
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedMatch(match)}
+                      className="hover:bg-dashboard-background"
+                    >
+                      <Pencil className="h-5 w-5 text-dashboard-text" />
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}
