@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 interface Player {
   name: string;
@@ -89,11 +90,13 @@ const ActiveTournaments = () => {
                     <TableCell>
                       <div className="space-x-2">
                         <Button 
-                          variant="outline" 
+                          variant="default" 
                           size="sm"
                           onClick={() => handleEdit(tournament.id)}
+                          className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
                         >
-                          Edit
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Enter Tournament
                         </Button>
                         <Button 
                           variant="destructive" 
