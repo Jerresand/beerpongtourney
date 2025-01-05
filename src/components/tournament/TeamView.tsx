@@ -14,7 +14,6 @@ interface TeamViewProps {
 const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [newTeamName, setNewTeamName] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
   const { toast } = useToast();
 
   const handleEditClick = (team: Team) => {
@@ -50,28 +49,8 @@ const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-white">Teams</h3>
-        <Button
-          variant="outline"
-          onClick={() => setIsVisible(!isVisible)}
-          className="text-dashboard-text hover:text-white"
-        >
-          {isVisible ? (
-            <>
-              <EyeOff className="h-4 w-4 mr-2" />
-              Hide Teams
-            </>
-          ) : (
-            <>
-              <Users className="h-4 w-4 mr-2" />
-              Show Teams
-            </>
-          )}
-        </Button>
-      </div>
-
-      {isVisible && (
+      <h3 className="text-xl font-bold text-white mb-4">Teams</h3>
+      <div className="max-h-[60vh] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -138,7 +117,7 @@ const TeamView = ({ tournament, onTeamNameUpdate }: TeamViewProps) => {
             ))}
           </TableBody>
         </Table>
-      )}
+      </div>
     </div>
   );
 };

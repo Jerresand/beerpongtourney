@@ -8,10 +8,13 @@ import StatisticsTable from "@/components/tournament/StatisticsTable";
 import TeamView from "@/components/tournament/TeamView";
 import StandingsTable from "@/components/tournament/StandingsTable";
 import { Standing } from "@/utils/tournamentUtils";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const TournamentView = () => {
   const { id } = useParams();
   const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [showTeamView, setShowTeamView] = useState(false);
 
   // Load tournament data
   useEffect(() => {
@@ -69,23 +72,34 @@ const TournamentView = () => {
     matchesPlayed: team.stats?.gamesPlayed || 0,
     points: team.stats?.wins || 0,
     pointsAgainst: team.stats?.losses || 0
-  })).sort((a, b) => b.winPercentage - a.winPercentage) || [];
+  })).sort((a, b) => {
+    // First, sort by wins
+    if (a.wins !== b.wins) {
+      return b.wins - a.wins;
+    }
+    // If wins are equal, sort by fewer losses (prioritize teams that played fewer games)
+    return a.losses - b.losses;
+  }) || [];
 
   if (!tournament) return <div>Tournament not found</div>;
 
   return (
     <Layout>
       <div className="space-y-8">
-        <div>
-          <h2 className="text-3xl font-bold text-white">{tournament.name}</h2>
-          <p className="text-dashboard-text mt-2">
-            {tournament.format} - {tournament.type}
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold text-white">{tournament.name}</h2>
+            <p className="text-dashboard-text mt-2">
+              {tournament.format} - {tournament.type}
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowTeamView(true)}
+            className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
+          >
+            Edit Teams
+          </Button>
         </div>
-        
-        <StatisticsTable players={tournament.players} />
-        <TeamView tournament={tournament} onTeamNameUpdate={handleTeamNameUpdate} />
-        <StandingsTable standings={standings} />
         
         {tournament.currentPhase === "playoffs" ? (
           <PlayoffView 
@@ -98,6 +112,18 @@ const TournamentView = () => {
             onTournamentUpdate={handleTournamentUpdate}
           />
         )}
+        
+        <StandingsTable standings={standings} />
+        <StatisticsTable players={tournament.players} />
+
+        <Dialog open={showTeamView} onOpenChange={setShowTeamView}>
+          <DialogContent className="bg-dashboard-background text-dashboard-text max-w-4xl max-h-[80vh] overflow-hidden">
+            <TeamView 
+              tournament={tournament} 
+              onTeamNameUpdate={handleTeamNameUpdate} 
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

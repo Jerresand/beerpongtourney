@@ -9,7 +9,7 @@ interface StandingsTableProps {
 }
 
 const StandingsTable = ({ standings }: StandingsTableProps) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   return (
     <div className="bg-dashboard-card p-6 rounded-lg">
