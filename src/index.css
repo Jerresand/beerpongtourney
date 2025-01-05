@@ -73,5 +73,11 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: url('/bubbles-1-transformed.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
