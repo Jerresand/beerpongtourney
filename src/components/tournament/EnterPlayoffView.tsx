@@ -124,7 +124,8 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
       ...tournament,
       currentPhase: "playoffs" as const,
       playoffMatches: initialPlayoffMatches,
-      playoffSeedMap: seedMap
+      playoffSeedMap: seedMap,
+      bestOf: parseInt(seriesLength)
     };
 
     onTournamentUpdate(updatedTournament);

@@ -42,11 +42,11 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
   };
 
   // Get round name based on round index and total rounds
-  const getRoundName = (roundIndex: number, totalRounds: number) => {
-    const roundsFromEnd = totalRounds - roundIndex - 1;
-    if (roundsFromEnd === 2) return "Quarter-Finals";
-    if (roundsFromEnd === 1) return "Semi-Finals";
-    if (roundsFromEnd === 0) return "Finals";
+  const getRoundName = (roundIndex: number, roundMatches: PlayoffMatch[]) => {
+    const numSeries = roundMatches.length;
+    if (numSeries === 4) return "Quarter-Finals";
+    if (numSeries === 2) return "Semi-Finals";
+    if (numSeries === 1) return "Finals";
     return `Round ${roundIndex + 1}`;
   };
 
@@ -136,9 +136,11 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
 
   const isSeriesComplete = (match: PlayoffMatch) => {
     const { team1Wins, team2Wins } = getSeriesScore(match);
+    if (match.bestOf === 1) {
+      return match.games[0].isComplete;
+    }
     const winsNeeded = Math.ceil(match.bestOf / 2);
-    return team1Wins >= winsNeeded || team2Wins >= winsNeeded || 
-           match.games.every(game => game.isComplete);
+    return team1Wins >= winsNeeded || team2Wins >= winsNeeded;
   };
 
   const handleGameChange = (match: PlayoffMatch, direction: 'prev' | 'next') => {
@@ -178,16 +180,19 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
   };
 
   // Get the name of the next round
-  const getNextRoundName = (currentRoundIndex: number, totalRounds: number) => {
-    const roundsFromEnd = totalRounds - currentRoundIndex - 1;
-    if (roundsFromEnd === 2) return "Semi-Finals";
-    if (roundsFromEnd === 1) return "Finals";
+  const getNextRoundName = (currentRoundMatches: PlayoffMatch[]) => {
+    const numSeries = currentRoundMatches.length;
+    if (numSeries === 4) return "Semi-Finals";
+    if (numSeries === 2) return "Finals";
     return "";
   };
 
   const handleEnterNextRound = (currentRoundIndex: number) => {
     const currentRoundMatches = matchesByRound[currentRoundIndex];
     const nextRoundMatches: PlayoffMatch[] = [];
+
+    // Get the bestOf value from the current round to carry over
+    const bestOf = currentRoundMatches[0].bestOf;
 
     // For semi-finals, we need to ensure proper bracket progression
     // Match 0 winner (1v8) should face Match 1 winner (4v5)
@@ -214,14 +219,14 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
         isComplete: false,
         isPlayoff: true,
         series: currentRoundIndex + 2,
-        bestOf: 3,
-        games: Array(3).fill({
+        bestOf,
+        games: Array.from({ length: bestOf }, () => ({
           team1Score: 0,
           team2Score: 0,
           team1PlayerStats: [],
           team2PlayerStats: [],
           isComplete: false
-        })
+        }))
       });
     }
 
@@ -263,7 +268,12 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
           <Card key={roundIndex} className="bg-dashboard-card">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-white">
-                {getRoundName(roundIndex, totalRounds)}
+                {getRoundName(roundIndex, roundMatches)}
+                {tournament.bestOf && tournament.bestOf > 1 && (
+                  <span className="text-sm font-normal text-dashboard-text ml-2">
+                    Best of {tournament.bestOf}
+                  </span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -275,7 +285,7 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                   const team2Seed = tournament.playoffSeedMap?.[match.team2Id] || 0;
                   const currentGame = selectedGames[match.id] || 0;
                   const { team1Wins, team2Wins } = getSeriesScore(match);
-                  const winsNeeded = Math.ceil(match.bestOf / 2);
+                  const isBestOfOne = tournament.bestOf === 1;
 
                   return (
                     <Card key={match.id} className="bg-dashboard-background p-4">
@@ -285,9 +295,6 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                             Series {matchIndex + 1}
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="text-sm text-dashboard-text">
-                              First to {winsNeeded} wins
-                            </div>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -299,34 +306,36 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleGameChange(match, 'prev')}
-                              disabled={currentGame === 0}
-                              className="h-8 w-8 p-0 hover:bg-dashboard-card disabled:opacity-50"
-                            >
-                              <ChevronLeft className="h-4 w-4 text-white" />
-                            </Button>
-                            <span className="text-sm text-white w-20 text-center">
-                              Game {currentGame + 1}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleGameChange(match, 'next')}
-                              disabled={currentGame === match.bestOf - 1}
-                              className="h-8 w-8 p-0 hover:bg-dashboard-card disabled:opacity-50"
-                            >
-                              <ChevronRight className="h-4 w-4 text-white" />
-                            </Button>
+                        {!isBestOfOne && (
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleGameChange(match, 'prev')}
+                                disabled={currentGame === 0}
+                                className="h-8 w-8 p-0 hover:bg-dashboard-card disabled:opacity-50"
+                              >
+                                <ChevronLeft className="h-4 w-4 text-white" />
+                              </Button>
+                              <span className="text-sm text-white w-20 text-center">
+                                Game {currentGame + 1}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleGameChange(match, 'next')}
+                                disabled={currentGame === match.bestOf - 1}
+                                className="h-8 w-8 p-0 hover:bg-dashboard-card disabled:opacity-50"
+                              >
+                                <ChevronRight className="h-4 w-4 text-white" />
+                              </Button>
+                            </div>
+                            <div className="text-sm text-white">
+                              Series: {team1Wins}-{team2Wins}
+                            </div>
                           </div>
-                          <div className="text-sm text-white">
-                            Series: {team1Wins}-{team2Wins}
-                          </div>
-                        </div>
+                        )}
 
                         <div className="space-y-2">
                           <div className={`flex justify-between items-center p-2 rounded ${match.games[currentGame].isComplete && match.games[currentGame].team1Score > match.games[currentGame].team2Score ? 'bg-green-900/20' : ''}`}>
@@ -368,7 +377,7 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
             onClick={() => handleEnterNextRound(matchesByRound.length - 1)}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            Enter {getNextRoundName(matchesByRound.length - 1, totalRounds)}
+            Enter {getNextRoundName(matchesByRound[matchesByRound.length - 1])}
           </Button>
         </div>
       )}

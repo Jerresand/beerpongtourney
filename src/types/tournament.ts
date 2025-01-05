@@ -73,12 +73,13 @@ export interface Tournament {
   format: "singles" | "doubles";
   matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
-  regularMatches: RegularMatch[];
+  regularMatches: Match[];
   playoffMatches: PlayoffMatch[];
   currentPhase: "regular" | "playoffs";
   createdAt: string;
   lastVisited?: string;
   playoffSeedMap?: Record<string, number>; // Maps team IDs to their playoff seeds
+  bestOf?: number; // Add this to track tournament-wide series length
 }
 
 export const isRegularMatch = (match: Match): match is RegularMatch => !match.isPlayoff;
