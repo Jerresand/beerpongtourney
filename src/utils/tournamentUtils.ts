@@ -13,17 +13,21 @@ export interface Standing {
 export const calculateRegularStandings = (tournament: Tournament | null): Standing[] => {
   if (!tournament?.teams) return [];
   
-  return tournament.teams.map(team => ({
-    name: team.name,
-    matchesPlayed: team.stats?.gamesPlayed || 0,
-    wins: team.stats?.wins || 0,
-    losses: team.stats?.losses || 0,
-    points: 0, // These could be calculated if needed
-    pointsAgainst: 0,
-    winPercentage: team.stats?.gamesPlayed 
-      ? (team.stats.wins / team.stats.gamesPlayed) * 100 
-      : 0
-  })).sort((a, b) => 
+  return tournament.teams.map(team => {
+    const wins = team.stats?.wins || 0;
+    const losses = team.stats?.losses || 0;
+    const matchesPlayed = wins + losses;
+    
+    return {
+      name: team.name,
+      matchesPlayed,
+      wins,
+      losses,
+      points: 0, // These could be calculated if needed
+      pointsAgainst: 0,
+      winPercentage: matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
+    };
+  }).sort((a, b) => 
     // Sort by win percentage first
     b.winPercentage - a.winPercentage || 
     // Then by total wins
