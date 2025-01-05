@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RotateCcw, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import MatchStatisticsManager from './MatchStatisticsManager';
+import PlayoffStatsTable from './PlayoffStatsTable';
 
 interface PlayoffViewProps {
   tournament: Tournament;
@@ -301,29 +302,29 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
       <div className="grid grid-cols-1 gap-6">
         {matchesByRound.map((roundMatches, roundIndex) => (
           <Card key={roundIndex} className="bg-dashboard-card">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-white">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-white">
                 {getRoundName(roundIndex, roundMatches)}
                 {tournament.bestOf && tournament.bestOf > 1 && (
                   <span className="text-sm font-normal text-dashboard-text ml-2">
                     Best of {tournament.bestOf}
                   </span>
                 )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {roundMatches.map((match, matchIndex) => {
-                  const team1 = tournament.teams.find(t => t.id === match.team1Id);
-                  const team2 = tournament.teams.find(t => t.id === match.team2Id);
+              const team1 = tournament.teams.find(t => t.id === match.team1Id);
+              const team2 = tournament.teams.find(t => t.id === match.team2Id);
                   const team1Seed = tournament.playoffSeedMap?.[match.team1Id] || 0;
                   const team2Seed = tournament.playoffSeedMap?.[match.team2Id] || 0;
                   const currentGame = selectedGames[match.id] || 0;
                   const { team1Wins, team2Wins } = getSeriesScore(match);
                   const isBestOfOne = tournament.bestOf === 1;
 
-                  return (
-                    <Card key={match.id} className="bg-dashboard-background p-4">
+              return (
+                <Card key={match.id} className="bg-dashboard-background p-4">
                       <div className="flex flex-col space-y-4">
                         <div className="flex justify-between items-center">
                           <div className="text-lg font-bold text-white">
@@ -369,24 +370,24 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                             <div className="text-sm text-white">
                               Series: {team1Wins}-{team2Wins}
                             </div>
-                          </div>
+                  </div>
                         )}
 
-                        <div className="space-y-2">
+                  <div className="space-y-2">
                           <div className={`flex justify-between items-center p-2 rounded ${match.games[currentGame].isComplete && match.games[currentGame].team1Score > match.games[currentGame].team2Score ? 'bg-green-900/20' : ''}`}>
                             <div className="flex items-center gap-2">
-                              <span className="text-white">{team1?.name}</span>
+                      <span className="text-white">{team1?.name}</span>
                               <span className="text-xs text-dashboard-text">#{team1Seed}</span>
                             </div>
                             <span className="text-white font-bold">{match.games[currentGame].team1Score}</span>
-                          </div>
+                    </div>
                           <div className={`flex justify-between items-center p-2 rounded ${match.games[currentGame].isComplete && match.games[currentGame].team2Score > match.games[currentGame].team1Score ? 'bg-green-900/20' : ''}`}>
                             <div className="flex items-center gap-2">
-                              <span className="text-white">{team2?.name}</span>
+                      <span className="text-white">{team2?.name}</span>
                               <span className="text-xs text-dashboard-text">#{team2Seed}</span>
                             </div>
                             <span className="text-white font-bold">{match.games[currentGame].team2Score}</span>
-                          </div>
+                    </div>
                         </div>
 
                         {isSeriesComplete(match) && (
@@ -394,13 +395,13 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                             Series Winner: {team1Wins > team2Wins ? team1?.name : team2?.name}
                           </div>
                         )}
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
         ))}
       </div>
 
@@ -452,6 +453,11 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
           onClose={() => setSelectedMatch(null)}
           onSave={handleMatchUpdate}
         />
+      )}
+
+      {/* Playoff Statistics Section */}
+      {tournament.playoffMatches.length > 0 && (
+        <PlayoffStatsTable tournament={tournament} />
       )}
     </div>
   );
