@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tournament, Match, Team, Player } from '@/types/tournament';
+import { Tournament, Match, Team, Player, isRegularMatch } from '@/types/tournament';
 import MatchSchedule from './MatchSchedule';
 import StandingsTable from './StandingsTable';
 import StatisticsTable from './StatisticsTable';
@@ -23,7 +23,7 @@ const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({
       teams: updatedTeams,
       players: updatedPlayers,
       regularMatches: tournament.regularMatches.map(match => 
-        match.id === updatedMatch.id ? { ...updatedMatch, isPlayoff: false, round: match.round } : match
+        match.id === updatedMatch.id ? { ...updatedMatch, isPlayoff: false, round: isRegularMatch(match) ? match.round : 1 } : match
       )
     };
 
