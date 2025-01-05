@@ -69,6 +69,7 @@ export interface Tournament {
   playoffMatches: PlayoffMatch[];
   currentPhase: "regular" | "playoffs";
   createdAt: string;
+  lastVisited?: string;
 }
 
 export const isRegularMatch = (match: Match): match is RegularMatch => !match.isPlayoff;
