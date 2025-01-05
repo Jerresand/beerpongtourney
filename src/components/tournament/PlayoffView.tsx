@@ -3,6 +3,7 @@ import { Tournament } from '@/types/tournament';
 
 interface PlayoffViewProps {
   tournament: Tournament;
+  onTournamentUpdate: (updatedTournament: Tournament) => void;
 }
 
 const PlayoffView = ({ tournament }: PlayoffViewProps) => {

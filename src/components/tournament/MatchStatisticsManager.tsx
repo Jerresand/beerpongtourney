@@ -74,10 +74,11 @@ const MatchStatisticsManager = ({
   });
 
   const handleSave = () => {
-    if (team1Section.score === team2Section.score) {
+    // Allow 0-0 as a special case to indicate unplayed game
+    if (team1Section.score === team2Section.score && (team1Section.score !== 0 || team2Section.score !== 0)) {
       toast({
         title: "Invalid Score",
-        description: "Games cannot end in a tie.",
+        description: "Games cannot end in a tie, except 0-0 for unplayed games.",
         variant: "destructive"
       });
       return;
@@ -109,67 +110,109 @@ const MatchStatisticsManager = ({
       });
     }
 
-    // Now add the new stats
-    const winner = team1Section.score > team2Section.score ? team1 : team2;
-    const loser = team1Section.score > team2Section.score ? team2 : team1;
+    // Only update stats if the game is actually played (not 0-0)
+    if (team1Section.score !== 0 || team2Section.score !== 0) {
+      // Now add the new stats
+      const winner = team1Section.score > team2Section.score ? team1 : team2;
+      const loser = team1Section.score > team2Section.score ? team2 : team1;
 
-    // Update team stats
-    const updatedTeams = tournament.teams.map(team => {
-      if (team.id === winner.id) {
-        return {
-          ...team,
-          stats: {
-            ...team.stats,
-            wins: (team.stats?.wins || 0) + 1,
-            gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
-          }
-        };
-      }
-      if (team.id === loser.id) {
-        return {
-          ...team,
-          stats: {
-            ...team.stats,
-            losses: (team.stats?.losses || 0) + 1,
-            gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
-          }
-        };
-      }
-      return team;
+      // Update team stats
+      const updatedTeams = tournament.teams.map(team => {
+        if (team.id === winner.id) {
+          return {
+            ...team,
+            stats: {
+              ...team.stats,
+              wins: (team.stats?.wins || 0) + 1,
+              gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
+            }
+          };
+        }
+        if (team.id === loser.id) {
+          return {
+            ...team,
+            stats: {
+              ...team.stats,
+              losses: (team.stats?.losses || 0) + 1,
+              gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
+            }
+          };
+        }
+        return team;
+      });
+
+      // Update player stats
+      const updatedPlayers = tournament.players.map(player => {
+        const team1Stats = team1Section.playerStats.find(ps => ps.playerId === player.id);
+        const team2Stats = team2Section.playerStats.find(ps => ps.playerId === player.id);
+        const matchStats = team1Stats || team2Stats;
+
+        if (matchStats) {
+          return {
+            ...player,
+            stats: {
+              gamesPlayed: (player.stats?.gamesPlayed || 0) + 1,
+              totalCups: (player.stats?.totalCups || 0) + matchStats.cups,
+              totalIces: (player.stats?.totalIces || 0) + matchStats.ices,
+              totalDefenses: (player.stats?.totalDefenses || 0) + matchStats.defense
+            }
+          };
+        }
+        return player;
+      });
+
+      // Create updated match
+      const updatedMatch: Match = {
+        ...match,
+        team1Score: team1Section.score,
+        team2Score: team2Section.score,
+        team1PlayerStats: team1Section.playerStats,
+        team2PlayerStats: team2Section.playerStats,
+        isComplete: true
+      };
+
+      onSave(updatedMatch, updatedTeams, updatedPlayers);
+      onClose();
+    } else {
+      // For 0-0 games, just update the match without affecting stats
+      const updatedMatch: Match = {
+        ...match,
+        team1Score: 0,
+        team2Score: 0,
+        team1PlayerStats: team1Section.playerStats,
+        team2PlayerStats: team2Section.playerStats,
+        isComplete: false  // Mark as incomplete since it's unplayed
+      };
+      onSave(updatedMatch, tournament.teams, tournament.players);
+      onClose();
+      return;
+    }
+  };
+
+  const handleReset = () => {
+    // Reset team 1 stats
+    setTeam1Section({
+      teamId: team1.id,
+      score: 0,
+      playerStats: team1.players.map(p => ({
+        playerId: p.id,
+        cups: 0,
+        ices: 0,
+        defense: 0
+      }))
     });
 
-    // Update player stats
-    const updatedPlayers = tournament.players.map(player => {
-      const team1Stats = team1Section.playerStats.find(ps => ps.playerId === player.id);
-      const team2Stats = team2Section.playerStats.find(ps => ps.playerId === player.id);
-      const matchStats = team1Stats || team2Stats;
-
-      if (matchStats) {
-        return {
-          ...player,
-          stats: {
-            gamesPlayed: (player.stats?.gamesPlayed || 0) + 1,
-            totalCups: (player.stats?.totalCups || 0) + matchStats.cups,
-            totalIces: (player.stats?.totalIces || 0) + matchStats.ices,
-            totalDefenses: (player.stats?.totalDefenses || 0) + matchStats.defense
-          }
-        };
-      }
-      return player;
+    // Reset team 2 stats
+    setTeam2Section({
+      teamId: team2.id,
+      score: 0,
+      playerStats: team2.players.map(p => ({
+        playerId: p.id,
+        cups: 0,
+        ices: 0,
+        defense: 0
+      }))
     });
-
-    // Create updated match
-    const updatedMatch: Match = {
-      ...match,
-      team1Score: team1Section.score,
-      team2Score: team2Section.score,
-      team1PlayerStats: team1Section.playerStats,
-      team2PlayerStats: team2Section.playerStats,
-      isComplete: true
-    };
-
-    onSave(updatedMatch, updatedTeams, updatedPlayers);
-    onClose();
   };
 
   return (
@@ -209,6 +252,13 @@ const MatchStatisticsManager = ({
         </div>
 
         <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-dashboard-muted">
+          <Button 
+            variant="outline"
+            onClick={handleReset}
+            className="bg-dashboard-background text-dashboard-text hover:bg-dashboard-muted"
+          >
+            Reset Stats
+          </Button>
           <Button 
             variant="outline" 
             onClick={onClose}
