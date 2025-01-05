@@ -11,75 +11,24 @@ export interface Standing {
 }
 
 export const calculateRegularStandings = (tournament: Tournament | null): Standing[] => {
-  if (!tournament?.players || !tournament?.regularMatches) return [];
+  if (!tournament?.teams) return [];
   
-  const playerStats = new Map<string, Standing>();
-
-  // Initialize all players with 0 stats
-  tournament.players.forEach(player => {
-    playerStats.set(player.name, {
-      name: player.name,
-      matchesPlayed: 0,
-      wins: 0,
-      losses: 0,
-      points: 0,
-      pointsAgainst: 0,
-      winPercentage: 0
-    });
-  });
-
-  // For each match, give wins/losses based on score
-  tournament.regularMatches.forEach(match => {
-    const team1 = tournament.teams.find(t => t.id === match.team1Id);
-    const team2 = tournament.teams.find(t => t.id === match.team2Id);
-
-    if (!team1 || !team2) return;
-
-    if (match.team1Score > match.team2Score) {
-      team1.players.forEach(p => {
-        const stats = playerStats.get(p.name);
-        if (stats) {
-          stats.wins++;
-          stats.matchesPlayed++;
-        }
-      });
-      team2.players.forEach(p => {
-        const stats = playerStats.get(p.name);
-        if (stats) {
-          stats.losses++;
-          stats.matchesPlayed++;
-        }
-      });
-    } else if (match.team2Score > match.team1Score) {
-      team2.players.forEach(p => {
-        const stats = playerStats.get(p.name);
-        if (stats) {
-          stats.wins++;
-          stats.matchesPlayed++;
-        }
-      });
-      team1.players.forEach(p => {
-        const stats = playerStats.get(p.name);
-        if (stats) {
-          stats.losses++;
-          stats.matchesPlayed++;
-        }
-      });
-    }
-  });
-
-  // Calculate win percentages and convert to array
-  return Array.from(playerStats.values())
-    .map(stats => ({
-      ...stats,
-      winPercentage: stats.matchesPlayed > 0 
-        ? Math.round((stats.wins / stats.matchesPlayed) * 100) 
-        : 0
-    }))
-    .sort((a, b) => 
-      // Sort by win percentage first, then by total points if tied
-      b.winPercentage - a.winPercentage || b.points - a.points
-    );
+  return tournament.teams.map(team => ({
+    name: team.name,
+    matchesPlayed: team.stats?.gamesPlayed || 0,
+    wins: team.stats?.wins || 0,
+    losses: team.stats?.losses || 0,
+    points: 0, // These could be calculated if needed
+    pointsAgainst: 0,
+    winPercentage: team.stats?.gamesPlayed 
+      ? (team.stats.wins / team.stats.gamesPlayed) * 100 
+      : 0
+  })).sort((a, b) => 
+    // Sort by win percentage first
+    b.winPercentage - a.winPercentage || 
+    // Then by total wins
+    b.wins - a.wins
+  );
 };
 
 export const calculatePlayoffStandings = (tournament: Tournament | null): Standing[] => {
