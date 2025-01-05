@@ -13,7 +13,8 @@ interface EnterPlayoffViewProps {
 
 const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewProps) => {
   const [showWarning, setShowWarning] = useState(false);
-  const [selectedPlayoffSize, setSelectedPlayoffSize] = useState<string>("all");
+  const [selectedPlayoffSize, setSelectedPlayoffSize] = useState<string>("");
+  const [seriesLength, setSeriesLength] = useState<"1" | "3" | "5">("3"); // Default to best of 3
 
   // Get available playoff sizes based on team count
   const getAvailablePlayoffSizes = () => {
@@ -35,10 +36,11 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
   };
 
   // Get descriptive text for playoff format
-  const getPlayoffFormatDescription = (size: string) => {
+  const getPlayoffFormatDescription = (size: string, series: string) => {
     const numTeams = parseInt(size);
     const rounds = Math.log2(numTeams);
     let description = `Top ${numTeams} teams qualify based on regular season record. `;
+    description += `All matches are best of ${series}. `;
     
     if (rounds === 4) {
       description += "Four rounds: Round of 16 → Quarter-Finals → Semi-Finals → Finals";
@@ -70,19 +72,39 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
     const matches: PlayoffMatch[] = [];
     const numTeams = teams.length;
     
-    // Create matchups where highest seed plays lowest seed
-    for (let i = 0; i < numTeams / 2; i++) {
+    // Create matchups in proper seeding order
+    // For 8 teams: (1v8, 4v5, 2v7, 3v6)
+    // For 4 teams: (1v4, 2v3)
+    // For 2 teams: (1v2)
+    const matchupPairs = [];
+    if (numTeams === 8) {
+      matchupPairs.push([0, 7], [3, 4], [1, 6], [2, 5]); // 1v8, 4v5, 2v7, 3v6
+    } else if (numTeams === 4) {
+      matchupPairs.push([0, 3], [1, 2]); // 1v4, 2v3
+    } else if (numTeams === 2) {
+      matchupPairs.push([0, 1]); // 1v2
+    }
+
+    for (const [highSeedIndex, lowSeedIndex] of matchupPairs) {
       matches.push({
         id: crypto.randomUUID(),
-        team1Id: teams[i].id, // Higher seed
-        team2Id: teams[numTeams - 1 - i].id, // Lower seed
+        team1Id: teams[highSeedIndex].id,
+        team2Id: teams[lowSeedIndex].id,
         team1Score: 0,
         team2Score: 0,
         team1PlayerStats: [],
         team2PlayerStats: [],
         isComplete: false,
         isPlayoff: true,
-        series: 1
+        series: 1,
+        bestOf: parseInt(seriesLength),
+        games: Array(parseInt(seriesLength)).fill(null).map(() => ({
+          team1Score: 0,
+          team2Score: 0,
+          team1PlayerStats: [],
+          team2PlayerStats: [],
+          isComplete: false
+        }))
       });
     }
     
@@ -121,33 +143,54 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Select
-              value={selectedPlayoffSize}
-              onValueChange={setSelectedPlayoffSize}
-            >
-              <SelectTrigger className="w-full bg-dashboard-background text-dashboard-text">
-                <SelectValue placeholder="Select playoff size" />
-              </SelectTrigger>
-              <SelectContent className="bg-dashboard-background text-dashboard-text">
-                {availablePlayoffSizes.map((size) => (
-                  <SelectItem key={size} value={size}>
-                    {`Top ${size} Teams`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-dashboard-text mb-2 block">Number of Teams</label>
+              <Select
+                value={selectedPlayoffSize}
+                onValueChange={setSelectedPlayoffSize}
+              >
+                <SelectTrigger className="w-full bg-dashboard-background text-dashboard-text">
+                  <SelectValue placeholder="Select playoff size" />
+                </SelectTrigger>
+                <SelectContent className="bg-dashboard-background text-dashboard-text">
+                  {availablePlayoffSizes.map((size) => (
+                    <SelectItem key={size} value={size}>
+                      {`Top ${size} Teams`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm text-dashboard-text mb-2 block">Series Length</label>
+              <Select
+                value={seriesLength}
+                onValueChange={(value: "1" | "3" | "5") => setSeriesLength(value)}
+              >
+                <SelectTrigger className="w-full bg-dashboard-background text-dashboard-text">
+                  <SelectValue placeholder="Select series length" />
+                </SelectTrigger>
+                <SelectContent className="bg-dashboard-background text-dashboard-text">
+                  <SelectItem value="1">Best of 1</SelectItem>
+                  <SelectItem value="3">Best of 3</SelectItem>
+                  <SelectItem value="5">Best of 5</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             {selectedPlayoffSize && (
               <div className="text-sm text-dashboard-text mt-2 p-3 bg-dashboard-background rounded-lg">
-                {getPlayoffFormatDescription(selectedPlayoffSize)}
+                {getPlayoffFormatDescription(selectedPlayoffSize, seriesLength)}
               </div>
             )}
           </div>
 
           <Button
             onClick={() => setShowWarning(true)}
-            className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105"
+            disabled={!selectedPlayoffSize}
+            className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trophy className="mr-2 h-6 w-6" />
             ENTER PLAYOFFS

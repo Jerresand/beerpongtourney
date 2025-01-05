@@ -86,14 +86,17 @@ const MatchStatisticsManager = ({
 
     // First, remove the previous match stats if this is an edit
     if (match.isComplete) {
-      // Remove previous team stats
-      const previousWinner = match.team1Score > match.team2Score ? team1 : team2;
-      const previousLoser = match.team1Score > match.team2Score ? team2 : team1;
+      // For playoff matches, we don't need to update team stats as they're tracked per series
+      if (!match.isPlayoff) {
+        // Remove previous team stats
+        const previousWinner = match.team1Score > match.team2Score ? team1 : team2;
+        const previousLoser = match.team1Score > match.team2Score ? team2 : team1;
 
-      previousWinner.stats.wins--;
-      previousWinner.stats.gamesPlayed--;
-      previousLoser.stats.losses--;
-      previousLoser.stats.gamesPlayed--;
+        previousWinner.stats.wins--;
+        previousWinner.stats.gamesPlayed--;
+        previousLoser.stats.losses--;
+        previousLoser.stats.gamesPlayed--;
+      }
 
       // Remove previous player stats
       tournament.players.forEach(player => {
@@ -116,27 +119,29 @@ const MatchStatisticsManager = ({
       const winner = team1Section.score > team2Section.score ? team1 : team2;
       const loser = team1Section.score > team2Section.score ? team2 : team1;
 
-      // Update team stats
+      // Update team stats only for regular season matches
       const updatedTeams = tournament.teams.map(team => {
-        if (team.id === winner.id) {
-          return {
-            ...team,
-            stats: {
-              ...team.stats,
-              wins: (team.stats?.wins || 0) + 1,
-              gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
-            }
-          };
-        }
-        if (team.id === loser.id) {
-          return {
-            ...team,
-            stats: {
-              ...team.stats,
-              losses: (team.stats?.losses || 0) + 1,
-              gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
-            }
-          };
+        if (!match.isPlayoff) {
+          if (team.id === winner.id) {
+            return {
+              ...team,
+              stats: {
+                ...team.stats,
+                wins: (team.stats?.wins || 0) + 1,
+                gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
+              }
+            };
+          }
+          if (team.id === loser.id) {
+            return {
+              ...team,
+              stats: {
+                ...team.stats,
+                losses: (team.stats?.losses || 0) + 1,
+                gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
+              }
+            };
+          }
         }
         return team;
       });

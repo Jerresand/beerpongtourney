@@ -56,20 +56,6 @@ const TournamentView = () => {
     setTournament(updatedTournament);
   };
 
-  const handleTournamentUpdate = (updatedTournament: Tournament) => {
-    setTournament(updatedTournament);
-  };
-
-  // Check if all regular season games are completed
-  const areAllGamesPlayed = () => {
-    if (!tournament) return false;
-    return tournament.regularMatches.every(match => 
-      match.team1Score !== undefined && 
-      match.team2Score !== undefined && 
-      (match.team1Score > 0 || match.team2Score > 0)  // At least one team must have scored
-    );
-  };
-
   const handleStartPlayoffs = () => {
     if (!tournament || !areAllGamesPlayed()) return;
     
@@ -86,6 +72,30 @@ const TournamentView = () => {
     localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
 
     setTournament(updatedTournament);
+  };
+
+  // Add function to save tournament updates to localStorage
+  const saveTournamentToLocalStorage = (updatedTournament: Tournament) => {
+    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournaments = tournaments.map((t: Tournament) =>
+      t.id === updatedTournament.id ? updatedTournament : t
+    );
+    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
+    setTournament(updatedTournament);
+  };
+
+  const handleTournamentUpdate = (updatedTournament: Tournament) => {
+    saveTournamentToLocalStorage(updatedTournament);
+  };
+
+  // Check if all regular season games are completed
+  const areAllGamesPlayed = () => {
+    if (!tournament) return false;
+    return tournament.regularMatches.every(match => 
+      match.team1Score !== undefined && 
+      match.team2Score !== undefined && 
+      (match.team1Score > 0 || match.team2Score > 0)  // At least one team must have scored
+    );
   };
 
   if (!tournament) return <div>Tournament not found</div>;

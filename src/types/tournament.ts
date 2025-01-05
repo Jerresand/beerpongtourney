@@ -53,6 +53,14 @@ export interface RegularMatch extends BaseMatch {
 export interface PlayoffMatch extends BaseMatch {
   isPlayoff: true;
   series: number;
+  bestOf: number; // Number of games needed to win the series (1, 3, or 5)
+  games: {
+    team1Score: number;
+    team2Score: number;
+    team1PlayerStats: MatchPlayerStats[];
+    team2PlayerStats: MatchPlayerStats[];
+    isComplete: boolean;
+  }[];
 }
 
 export type Match = RegularMatch | PlayoffMatch;
