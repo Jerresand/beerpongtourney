@@ -3,11 +3,9 @@ import { useParams } from "react-router-dom";
 import Layout from "@/components/dashboard/Layout";
 import { Tournament } from "@/types/tournament";
 import RegularSeasonView from "@/components/tournament/RegularSeasonView";
+import EnterPlayoffView from "@/components/tournament/EnterPlayoffView";
 import PlayoffView from "@/components/tournament/PlayoffView";
-import StatisticsTable from "@/components/tournament/StatisticsTable";
 import TeamView from "@/components/tournament/TeamView";
-import StandingsTable from "@/components/tournament/StandingsTable";
-import { Standing } from "@/utils/tournamentUtils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft } from "lucide-react";
@@ -61,26 +59,6 @@ const TournamentView = () => {
   const handleTournamentUpdate = (updatedTournament: Tournament) => {
     setTournament(updatedTournament);
   };
-
-  // Calculate standings
-  const standings: Standing[] = tournament?.teams.map(team => ({
-    name: team.name,
-    wins: team.stats?.wins || 0,
-    losses: team.stats?.losses || 0,
-    winPercentage: team.stats?.gamesPlayed 
-      ? (team.stats.wins / team.stats.gamesPlayed) * 100 
-      : 0,
-    matchesPlayed: team.stats?.gamesPlayed || 0,
-    points: team.stats?.wins || 0,
-    pointsAgainst: team.stats?.losses || 0
-  })).sort((a, b) => {
-    // First, sort by wins
-    if (a.wins !== b.wins) {
-      return b.wins - a.wins;
-    }
-    // If wins are equal, sort by fewer losses (prioritize teams that played fewer games)
-    return a.losses - b.losses;
-  }) || [];
 
   // Check if all regular season games are completed
   const areAllGamesPlayed = () => {
@@ -160,19 +138,23 @@ const TournamentView = () => {
         </div>
         
         {tournament.currentPhase === "playoffs" ? (
-          <PlayoffView 
-            tournament={tournament}
-            onTournamentUpdate={handleTournamentUpdate}
-          />
+          tournament.playoffMatches.length > 0 ? (
+            <PlayoffView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          ) : (
+            <EnterPlayoffView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          )
         ) : (
           <RegularSeasonView 
             tournament={tournament}
             onTournamentUpdate={handleTournamentUpdate}
           />
         )}
-        
-        <StandingsTable standings={standings} />
-        <StatisticsTable players={tournament.players} />
 
         <Dialog open={showTeamView} onOpenChange={setShowTeamView}>
           <DialogContent className="bg-dashboard-background text-dashboard-text max-w-4xl max-h-[80vh] overflow-hidden">

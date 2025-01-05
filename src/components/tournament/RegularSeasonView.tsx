@@ -1,6 +1,9 @@
 import React from 'react';
 import { Tournament, Match, Team, Player } from '@/types/tournament';
 import MatchSchedule from './MatchSchedule';
+import StandingsTable from './StandingsTable';
+import StatisticsTable from './StatisticsTable';
+import { Standing } from '@/utils/tournamentUtils';
 
 interface RegularSeasonViewProps {
   tournament: Tournament;
@@ -30,6 +33,26 @@ const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({ tournament, onTou
     onTournamentUpdate(updatedTournament);
   };
 
+  // Calculate standings
+  const standings: Standing[] = tournament.teams.map(team => ({
+    name: team.name,
+    wins: team.stats?.wins || 0,
+    losses: team.stats?.losses || 0,
+    winPercentage: team.stats?.gamesPlayed 
+      ? (team.stats.wins / team.stats.gamesPlayed) * 100 
+      : 0,
+    matchesPlayed: team.stats?.gamesPlayed || 0,
+    points: team.stats?.wins || 0,
+    pointsAgainst: team.stats?.losses || 0
+  })).sort((a, b) => {
+    // First, sort by wins
+    if (a.wins !== b.wins) {
+      return b.wins - a.wins;
+    }
+    // If wins are equal, sort by fewer losses (prioritize teams that played fewer games)
+    return a.losses - b.losses;
+  });
+
   return (
     <div className="space-y-6">
       <MatchSchedule 
@@ -37,6 +60,8 @@ const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({ tournament, onTou
         tournament={tournament}
         onMatchUpdate={handleMatchUpdate}
       />
+      <StandingsTable standings={standings} />
+      <StatisticsTable players={tournament.players} />
     </div>
   );
 };
