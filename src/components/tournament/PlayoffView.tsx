@@ -83,6 +83,11 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
     const matchToUpdate = tournament.playoffMatches.find(m => m.id === updatedMatch.id);
     if (!matchToUpdate) return;
 
+    // Store the previous winner before updating
+    const { team1Wins: prevTeam1Wins, team2Wins: prevTeam2Wins } = getSeriesScore(matchToUpdate);
+    const previousWinnerId = prevTeam1Wins > prevTeam2Wins ? matchToUpdate.team1Id : 
+                           prevTeam2Wins > prevTeam1Wins ? matchToUpdate.team2Id : null;
+
     const updatedGames = [...matchToUpdate.games];
     updatedGames[currentGame] = {
       team1Score: updatedMatch.team1Score,
@@ -95,7 +100,6 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
     const updatedPlayoffMatch: PlayoffMatch = {
       ...matchToUpdate,
       games: updatedGames,
-      // Update the overall match scores to reflect the current game
       team1Score: updatedMatch.team1Score,
       team2Score: updatedMatch.team2Score,
       team1PlayerStats: updatedMatch.team1PlayerStats,
@@ -103,13 +107,44 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
       isComplete: isSeriesComplete({ ...matchToUpdate, games: updatedGames })
     };
 
+    // Check if the winner has changed
+    const { team1Wins: newTeam1Wins, team2Wins: newTeam2Wins } = getSeriesScore(updatedPlayoffMatch);
+    const newWinnerId = newTeam1Wins > newTeam2Wins ? updatedPlayoffMatch.team1Id : 
+                       newTeam2Wins > newTeam1Wins ? updatedPlayoffMatch.team2Id : null;
+
+    // If the winner has changed and this isn't the final round, we need to reset subsequent rounds
+    const matchesByRound = getMatchesByRound();
+    const currentRoundIndex = matchesByRound.findIndex(round => 
+      round.some(m => m.id === updatedMatch.id)
+    );
+    
+    let updatedPlayoffMatches = [...tournament.playoffMatches];
+    
+    if (previousWinnerId !== newWinnerId && currentRoundIndex < matchesByRound.length - 1) {
+      // Keep matches up to and including the current round
+      updatedPlayoffMatches = tournament.playoffMatches.filter(match => {
+        const matchRoundIndex = matchesByRound.findIndex(round => 
+          round.some(m => m.id === match.id)
+        );
+        return matchRoundIndex <= currentRoundIndex;
+      });
+
+      // Update the current match
+      updatedPlayoffMatches = updatedPlayoffMatches.map(match =>
+        match.id === updatedMatch.id ? updatedPlayoffMatch : match
+      );
+    } else {
+      // Just update the current match without affecting other rounds
+      updatedPlayoffMatches = updatedPlayoffMatches.map(match =>
+        match.id === updatedMatch.id ? updatedPlayoffMatch : match
+      );
+    }
+
     const updatedTournament: Tournament = {
       ...tournament,
       teams: updatedTeams,
       players: updatedPlayers,
-      playoffMatches: tournament.playoffMatches.map(match =>
-        match.id === updatedMatch.id ? updatedPlayoffMatch : match
-      )
+      playoffMatches: updatedPlayoffMatches
     };
 
     // Save to localStorage
