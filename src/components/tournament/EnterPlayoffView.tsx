@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Trophy } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EnterPlayoffViewProps {
   tournament: Tournament;
@@ -12,6 +13,45 @@ interface EnterPlayoffViewProps {
 
 const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewProps) => {
   const [showWarning, setShowWarning] = useState(false);
+  const [selectedPlayoffSize, setSelectedPlayoffSize] = useState<string>("all");
+
+  // Get available playoff sizes based on team count
+  const getAvailablePlayoffSizes = () => {
+    const teamCount = tournament.teams.length;
+    const sizes = ["all"];
+    
+    if (teamCount >= 16) sizes.push("16");
+    if (teamCount >= 8) sizes.push("8");
+    if (teamCount >= 4) sizes.push("4");
+    if (teamCount >= 2) sizes.push("2");
+    
+    return sizes;
+  };
+
+  // Get descriptive text for playoff format
+  const getPlayoffFormatDescription = (size: string) => {
+    const teamCount = tournament.teams.length;
+    
+    if (size === "all") {
+      return `All ${teamCount} teams qualify. #1 seed plays #${teamCount}, #2 plays #${teamCount-1}, etc.`;
+    }
+    
+    const numTeams = parseInt(size);
+    const rounds = Math.log2(numTeams);
+    let description = `Top ${numTeams} teams qualify based on regular season record. `;
+    
+    if (rounds === 4) {
+      description += "Four rounds: Round of 16 → Quarter-Finals → Semi-Finals → Finals";
+    } else if (rounds === 3) {
+      description += "Three rounds: Quarter-Finals → Semi-Finals → Finals";
+    } else if (rounds === 2) {
+      description += "Two rounds: Semi-Finals → Finals";
+    } else {
+      description += "Single round: Finals";
+    }
+    
+    return description;
+  };
 
   // Sort teams by wins and get qualified teams
   const getQualifiedTeams = () => {
@@ -22,9 +62,8 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
       return (a.stats?.losses || 0) - (b.stats?.losses || 0);
     });
 
-    if (sortedTeams.length >= 8) return sortedTeams.slice(0, 8);
-    if (sortedTeams.length >= 4) return sortedTeams.slice(0, 4);
-    return sortedTeams.slice(0, 2);
+    if (selectedPlayoffSize === "all") return sortedTeams;
+    return sortedTeams.slice(0, parseInt(selectedPlayoffSize));
   };
 
   const handleStartPlayoffs = () => {
@@ -60,16 +99,50 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
   };
 
   const qualifiedTeams = getQualifiedTeams();
+  const availablePlayoffSizes = getAvailablePlayoffSizes();
 
   return (
     <div className="space-y-6">
-      <Button
-        onClick={() => setShowWarning(true)}
-        className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105"
-      >
-        <Trophy className="mr-2 h-6 w-6" />
-        ENTER PLAYOFFS
-      </Button>
+      <Card className="bg-dashboard-card">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-white">
+            Choose Playoff Format
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Select
+              value={selectedPlayoffSize}
+              onValueChange={setSelectedPlayoffSize}
+            >
+              <SelectTrigger className="w-full bg-dashboard-background text-dashboard-text">
+                <SelectValue placeholder="Select playoff size" />
+              </SelectTrigger>
+              <SelectContent className="bg-dashboard-background text-dashboard-text">
+                {availablePlayoffSizes.map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {size === "all" ? "All Teams" : `Top ${size} Teams`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {selectedPlayoffSize && (
+              <div className="text-sm text-dashboard-text mt-2 p-3 bg-dashboard-background rounded-lg">
+                {getPlayoffFormatDescription(selectedPlayoffSize)}
+              </div>
+            )}
+          </div>
+
+          <Button
+            onClick={() => setShowWarning(true)}
+            className="w-full h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all hover:scale-105"
+          >
+            <Trophy className="mr-2 h-6 w-6" />
+            ENTER PLAYOFFS
+          </Button>
+        </CardContent>
+      </Card>
 
       <Dialog open={showWarning} onOpenChange={setShowWarning}>
         <DialogContent className="bg-dashboard-background text-dashboard-text">
