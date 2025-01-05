@@ -1,4 +1,4 @@
-import { Beer, Users, CupSoda, Settings, LogOut, Trophy, Plus, List } from "lucide-react";
+import { Beer, LogOut, Trophy, Plus, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,9 +11,6 @@ import {
 
 const menuItems = [
   { icon: Beer, label: "Dashboard", path: "/" },
-  { icon: Users, label: "The Boys", path: "/boys" },
-  { icon: CupSoda, label: "Drink Log", path: "/drinks" },
-  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 const Sidebar = () => {
@@ -34,7 +31,7 @@ const Sidebar = () => {
   return (
     <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-dashboard-text">BeerAdmin</h1>
+        <h1 className="text-2xl font-bold text-dashboard-text">BeerPongTourney</h1>
       </div>
       <nav className="space-y-2 flex-1">
         {menuItems.map((item) => (
@@ -61,12 +58,12 @@ const Sidebar = () => {
               : "text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background"
           )}>
             <Trophy className="h-5 w-5" />
-            <span>Tournament</span>
+            <span>Tournaments</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuItem onClick={() => navigate("/tournament")}>
               <Plus className="mr-2 h-4 w-4" />
-              <span>Create New</span>
+              <span>Create Tournament</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/active-tournaments")}>
               <List className="mr-2 h-4 w-4" />

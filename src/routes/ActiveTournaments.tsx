@@ -24,6 +24,7 @@ interface Tournament {
   matchesPerTeam: number;
   type: "playoffs" | "regular+playoffs";
   createdAt: string;
+  lastVisited?: string;
 }
 
 const ActiveTournaments = () => {
@@ -33,7 +34,16 @@ const ActiveTournaments = () => {
   useEffect(() => {
     const loadTournaments = () => {
       const savedTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-      setTournaments(savedTournaments);
+      // Sort tournaments by lastVisited (most recent first), then by createdAt
+      const sortedTournaments = savedTournaments.sort((a: Tournament, b: Tournament) => {
+        if (a.lastVisited && b.lastVisited) {
+          return new Date(b.lastVisited).getTime() - new Date(a.lastVisited).getTime();
+        }
+        if (a.lastVisited) return -1;
+        if (b.lastVisited) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      setTournaments(sortedTournaments);
     };
 
     loadTournaments();
@@ -51,6 +61,15 @@ const ActiveTournaments = () => {
   };
 
   const handleEdit = (id: string) => {
+    // Update lastVisited timestamp
+    const updatedTournaments = tournaments.map(t => 
+      t.id === id 
+        ? { ...t, lastVisited: new Date().toISOString() }
+        : t
+    );
+    localStorage.setItem('activeTournaments', JSON.stringify(updatedTournaments));
+    setTournaments(updatedTournaments);
+    
     navigate(`/tournament/${id}`);
   };
 
@@ -74,7 +93,7 @@ const ActiveTournaments = () => {
                   <TableHead>Tournament Name</TableHead>
                   <TableHead>Format</TableHead>
                   <TableHead>Players</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>Last Visited</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -85,7 +104,9 @@ const ActiveTournaments = () => {
                     <TableCell className="text-dashboard-text">{tournament.format}</TableCell>
                     <TableCell className="text-dashboard-text">{tournament.players.length}</TableCell>
                     <TableCell className="text-dashboard-text">
-                      {new Date(tournament.createdAt).toLocaleDateString()}
+                      {tournament.lastVisited 
+                        ? new Date(tournament.lastVisited).toLocaleString()
+                        : new Date(tournament.createdAt).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <div className="space-x-2">
@@ -109,7 +130,7 @@ const ActiveTournaments = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
+              </TableBody> 
             </Table>
           )}
         </div>
