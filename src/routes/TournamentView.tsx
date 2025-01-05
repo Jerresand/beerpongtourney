@@ -10,6 +10,7 @@ import StandingsTable from "@/components/tournament/StandingsTable";
 import { Standing } from "@/utils/tournamentUtils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft } from "lucide-react";
 
 const TournamentView = () => {
   const { id } = useParams();
@@ -81,6 +82,34 @@ const TournamentView = () => {
     return a.losses - b.losses;
   }) || [];
 
+  // Check if all regular season games are completed
+  const areAllGamesPlayed = () => {
+    if (!tournament) return false;
+    return tournament.regularMatches.every(match => 
+      match.team1Score !== undefined && 
+      match.team2Score !== undefined && 
+      (match.team1Score > 0 || match.team2Score > 0)  // At least one team must have scored
+    );
+  };
+
+  const handleStartPlayoffs = () => {
+    if (!tournament || !areAllGamesPlayed()) return;
+    
+    const updatedTournament: Tournament = {
+      ...tournament,
+      currentPhase: "playoffs" as const
+    };
+
+    // Update localStorage
+    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
+    const updatedTournaments = tournaments.map((t: Tournament) =>
+      t.id === tournament.id ? updatedTournament : t
+    );
+    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
+
+    setTournament(updatedTournament);
+  };
+
   if (!tournament) return <div>Tournament not found</div>;
 
   return (
@@ -93,12 +122,41 @@ const TournamentView = () => {
               {tournament.format} - {tournament.type}
             </p>
           </div>
-          <Button
-            onClick={() => setShowTeamView(true)}
-            className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
-          >
-            Edit Teams
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowTeamView(true)}
+              className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
+            >
+              Edit Teams
+            </Button>
+            {tournament.currentPhase === "playoffs" ? (
+              <Button
+                onClick={() => {
+                  const updatedTournament: Tournament = {
+                    ...tournament,
+                    currentPhase: "regular" as const
+                  };
+                  handleTournamentUpdate(updatedTournament);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Regular Season
+              </Button>
+            ) : (
+              <Button
+                disabled={!areAllGamesPlayed()}
+                onClick={handleStartPlayoffs}
+                className={`${
+                  areAllGamesPlayed() 
+                    ? "bg-green-600 hover:bg-green-700" 
+                    : "bg-gray-600 cursor-not-allowed"
+                } text-white`}
+              >
+                Start Playoffs
+              </Button>
+            )}
+          </div>
         </div>
         
         {tournament.currentPhase === "playoffs" ? (
