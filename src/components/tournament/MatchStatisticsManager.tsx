@@ -83,6 +83,33 @@ const MatchStatisticsManager = ({
       return;
     }
 
+    // First, remove the previous match stats if this is an edit
+    if (match.isComplete) {
+      // Remove previous team stats
+      const previousWinner = match.team1Score > match.team2Score ? team1 : team2;
+      const previousLoser = match.team1Score > match.team2Score ? team2 : team1;
+
+      previousWinner.stats.wins--;
+      previousWinner.stats.gamesPlayed--;
+      previousLoser.stats.losses--;
+      previousLoser.stats.gamesPlayed--;
+
+      // Remove previous player stats
+      tournament.players.forEach(player => {
+        const previousTeam1Stat = match.team1PlayerStats.find(ps => ps.playerId === player.id);
+        const previousTeam2Stat = match.team2PlayerStats.find(ps => ps.playerId === player.id);
+        const previousStats = previousTeam1Stat || previousTeam2Stat;
+
+        if (previousStats) {
+          player.stats.gamesPlayed--;
+          player.stats.totalCups -= previousStats.cups;
+          player.stats.totalIces -= previousStats.ices;
+          player.stats.totalDefenses -= previousStats.defense;
+        }
+      });
+    }
+
+    // Now add the new stats
     const winner = team1Section.score > team2Section.score ? team1 : team2;
     const loser = team1Section.score > team2Section.score ? team2 : team1;
 
@@ -92,8 +119,8 @@ const MatchStatisticsManager = ({
         return {
           ...team,
           stats: {
+            ...team.stats,
             wins: (team.stats?.wins || 0) + 1,
-            losses: team.stats?.losses || 0,
             gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
           }
         };
@@ -102,7 +129,7 @@ const MatchStatisticsManager = ({
         return {
           ...team,
           stats: {
-            wins: team.stats?.wins || 0,
+            ...team.stats,
             losses: (team.stats?.losses || 0) + 1,
             gamesPlayed: (team.stats?.gamesPlayed || 0) + 1
           }
