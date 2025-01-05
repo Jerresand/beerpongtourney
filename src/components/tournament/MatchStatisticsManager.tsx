@@ -7,7 +7,7 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import TeamStatsSection from './TeamStatsSection';
 import { 
   Match, 
@@ -72,30 +72,6 @@ const MatchStatisticsManager = ({
           defense: 0
         }))
   });
-
-  const updateTeamScore = (teamSection: TeamInputSection, score: number) => {
-    if (teamSection.teamId === team1.id) {
-      setTeam1Section({ ...team1Section, score });
-    } else {
-      setTeam2Section({ ...team2Section, score });
-    }
-  };
-
-  const updatePlayerStats = (
-    teamSection: TeamInputSection,
-    playerIndex: number,
-    field: keyof Omit<MatchPlayerStats, 'playerId'>,
-    value: number
-  ) => {
-    const newStats = [...teamSection.playerStats];
-    newStats[playerIndex] = { ...newStats[playerIndex], [field]: value };
-
-    if (teamSection.teamId === team1.id) {
-      setTeam1Section({ ...team1Section, playerStats: newStats });
-    } else {
-      setTeam2Section({ ...team2Section, playerStats: newStats });
-    }
-  };
 
   const handleSave = () => {
     if (team1Section.score === team2Section.score) {
@@ -184,20 +160,24 @@ const MatchStatisticsManager = ({
             team={team1}
             score={team1Section.score}
             playerStats={team1Section.playerStats}
-            onScoreChange={(score) => updateTeamScore(team1Section, score)}
-            onPlayerStatChange={(playerIndex, field, value) => 
-              updatePlayerStats(team1Section, playerIndex, field, value)
-            }
+            onScoreChange={(score) => setTeam1Section({ ...team1Section, score })}
+            onPlayerStatChange={(playerIndex, field, value) => {
+              const newStats = [...team1Section.playerStats];
+              newStats[playerIndex] = { ...newStats[playerIndex], [field]: value };
+              setTeam1Section({ ...team1Section, playerStats: newStats });
+            }}
           />
           <div className="border-t border-dashboard-muted" />
           <TeamStatsSection
             team={team2}
             score={team2Section.score}
             playerStats={team2Section.playerStats}
-            onScoreChange={(score) => updateTeamScore(team2Section, score)}
-            onPlayerStatChange={(playerIndex, field, value) => 
-              updatePlayerStats(team2Section, playerIndex, field, value)
-            }
+            onScoreChange={(score) => setTeam2Section({ ...team2Section, score })}
+            onPlayerStatChange={(playerIndex, field, value) => {
+              const newStats = [...team2Section.playerStats];
+              newStats[playerIndex] = { ...newStats[playerIndex], [field]: value };
+              setTeam2Section({ ...team2Section, playerStats: newStats });
+            }}
           />
         </div>
 

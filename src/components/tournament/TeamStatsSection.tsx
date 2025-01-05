@@ -1,9 +1,8 @@
 import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import PlayerStatsInput from './PlayerStatsInput';
 import { Team, MatchPlayerStats } from '@/types/tournament';
-import { useToast } from "@/components/ui/use-toast";
+import PlayerStatsInput from './PlayerStatsInput';
+import TeamScoreInput from './TeamScoreInput';
+import { useTeamScoreSync } from '@/hooks/useTeamScoreSync';
 
 interface TeamStatsSectionProps {
   team: Team;
@@ -24,35 +23,17 @@ const TeamStatsSection = ({
   onScoreChange,
   onPlayerStatChange,
 }: TeamStatsSectionProps) => {
-  const { toast } = useToast();
-
-  const handleScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newScore = parseInt(e.target.value) || 0;
-    if (newScore < 0) {
-      toast({
-        title: "Invalid Score",
-        description: "Score cannot be negative",
-        variant: "destructive"
-      });
-      return;
-    }
-    onScoreChange(newScore);
-  };
+  const { score: syncedScore, setScore } = useTeamScoreSync(score, playerStats, onScoreChange);
 
   return (
     <div className="space-y-4 bg-dashboard-background p-4 rounded-lg">
       <div className="flex items-center justify-between bg-dashboard-card p-3 rounded-lg">
         <h3 className="text-lg font-semibold text-dashboard-text">{team.name}</h3>
-        <div className="flex items-center gap-2">
-          <Label className="text-dashboard-text">Score</Label>
-          <Input
-            type="number"
-            value={score}
-            onChange={handleScoreChange}
-            className="w-20 bg-dashboard-background text-dashboard-text border-dashboard-muted"
-            min="0"
-          />
-        </div>
+        <TeamScoreInput
+          teamName={team.name}
+          score={syncedScore}
+          onScoreChange={setScore}
+        />
       </div>
 
       <div className="space-y-3">
