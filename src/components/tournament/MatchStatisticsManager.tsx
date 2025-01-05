@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,9 +7,8 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import TeamStatsSection from './TeamStatsSection';
 import { 
   Match, 
   Team, 
@@ -45,11 +44,9 @@ const MatchStatisticsManager = ({
 }: MatchStatisticsManagerProps) => {
   const { toast } = useToast();
   
-  // Get teams from tournament
   const team1 = tournament.teams.find(t => t.id === match.team1Id)!;
   const team2 = tournament.teams.find(t => t.id === match.team2Id)!;
 
-  // State for team sections
   const [team1Section, setTeam1Section] = useState<TeamInputSection>({
     teamId: team1.id,
     score: match.team1Score,
@@ -110,7 +107,6 @@ const MatchStatisticsManager = ({
       return;
     }
 
-    // Determine winner and loser
     const winner = team1Section.score > team2Section.score ? team1 : team2;
     const loser = team1Section.score > team2Section.score ? team2 : team1;
 
@@ -173,79 +169,9 @@ const MatchStatisticsManager = ({
     onClose();
   };
 
-  const renderTeamSection = (
-    teamSection: TeamInputSection,
-    team: Team
-  ) => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">{team.name}</h3>
-        <div className="flex items-center gap-2">
-          <Label>Score</Label>
-          <Input
-            type="number"
-            value={teamSection.score}
-            onChange={(e) => updateTeamScore(teamSection, parseInt(e.target.value) || 0)}
-            className="w-20 bg-dashboard-card"
-          />
-        </div>
-      </div>
-
-      {team.players.map((player, index) => (
-        <div key={player.id} className="space-y-2 p-4 bg-dashboard-background rounded-lg">
-          <h4 className="font-medium">{player.name}</h4>
-          <div className="grid grid-cols-3 gap-4">
-            <div key={`${player.id}-cups`}>
-              <Label>Cups</Label>
-              <Input
-                type="number"
-                value={teamSection.playerStats[index].cups}
-                onChange={(e) => updatePlayerStats(
-                  teamSection,
-                  index,
-                  'cups',
-                  parseInt(e.target.value) || 0
-                )}
-                className="bg-dashboard-card"
-              />
-            </div>
-            <div key={`${player.id}-ices`}>
-              <Label>Ices</Label>
-              <Input
-                type="number"
-                value={teamSection.playerStats[index].ices}
-                onChange={(e) => updatePlayerStats(
-                  teamSection,
-                  index,
-                  'ices',
-                  parseInt(e.target.value) || 0
-                )}
-                className="bg-dashboard-card"
-              />
-            </div>
-            <div key={`${player.id}-defense`}>
-              <Label>Defenses</Label>
-              <Input
-                type="number"
-                value={teamSection.playerStats[index].defense}
-                onChange={(e) => updatePlayerStats(
-                  teamSection,
-                  index,
-                  'defense',
-                  parseInt(e.target.value) || 0
-                )}
-                className="bg-dashboard-card"
-              />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-dashboard-card text-white max-w-2xl">
+      <DialogContent className="bg-dashboard-card text-white max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Match Statistics</DialogTitle>
           <DialogDescription className="text-gray-400">
@@ -254,12 +180,28 @@ const MatchStatisticsManager = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {renderTeamSection(team1Section, team1)}
+          <TeamStatsSection
+            team={team1}
+            score={team1Section.score}
+            playerStats={team1Section.playerStats}
+            onScoreChange={(score) => updateTeamScore(team1Section, score)}
+            onPlayerStatChange={(playerIndex, field, value) => 
+              updatePlayerStats(team1Section, playerIndex, field, value)
+            }
+          />
           <div className="border-t border-gray-700" />
-          {renderTeamSection(team2Section, team2)}
+          <TeamStatsSection
+            team={team2}
+            score={team2Section.score}
+            playerStats={team2Section.playerStats}
+            onScoreChange={(score) => updateTeamScore(team2Section, score)}
+            onPlayerStatChange={(playerIndex, field, value) => 
+              updatePlayerStats(team2Section, playerIndex, field, value)
+            }
+          />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-700">
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-gray-700">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -275,4 +217,4 @@ const MatchStatisticsManager = ({
   );
 };
 
-export default MatchStatisticsManager; 
+export default MatchStatisticsManager;
