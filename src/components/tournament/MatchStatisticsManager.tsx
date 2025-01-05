@@ -171,15 +171,15 @@ const MatchStatisticsManager = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-dashboard-card text-white max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-dashboard-background text-dashboard-text max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Match Statistics</DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogTitle className="text-xl font-bold text-dashboard-text">Match Statistics</DialogTitle>
+          <DialogDescription className="text-dashboard-muted">
             Enter match statistics for both teams
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 py-4">
           <TeamStatsSection
             team={team1}
             score={team1Section.score}
@@ -189,7 +189,7 @@ const MatchStatisticsManager = ({
               updatePlayerStats(team1Section, playerIndex, field, value)
             }
           />
-          <div className="border-t border-gray-700" />
+          <div className="border-t border-dashboard-muted" />
           <TeamStatsSection
             team={team2}
             score={team2Section.score}
@@ -201,13 +201,17 @@ const MatchStatisticsManager = ({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-gray-700">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-dashboard-muted">
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="bg-dashboard-background text-dashboard-text hover:bg-dashboard-muted"
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleSave}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
           >
             Save Match
           </Button>
