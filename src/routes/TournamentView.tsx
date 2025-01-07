@@ -116,7 +116,7 @@ const TournamentView = () => {
               onClick={() => setShowTeamView(true)}
               className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
             >
-              Edit Teams
+              Edit Team Names
             </Button>
             {tournament.type === "regular+playoffs" && tournament.currentPhase === "playoffs" && (
               <Button

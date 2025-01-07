@@ -20,16 +20,13 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
   const getAvailablePlayoffSizes = () => {
     const teamCount = tournament.teams.length;
     const sizes: string[] = [];
+    const maxSize = 256;
     
-    if (teamCount >= 16) sizes.push("16");
-    if (teamCount >= 8) sizes.push("8");
-    if (teamCount >= 4) sizes.push("4");
-    if (teamCount >= 2) sizes.push("2");
-    
-    // Add the actual team count if it's not already in the list and is a power of 2
-    const isPowerOfTwo = (n: number) => Math.log2(n) % 1 === 0;
-    if (isPowerOfTwo(teamCount) && !sizes.includes(teamCount.toString())) {
-      sizes.push(teamCount.toString());
+    // Calculate the largest power of 2 that's less than or equal to the team count
+    let currentSize = 2;
+    while (currentSize <= Math.min(teamCount, maxSize)) {
+      sizes.unshift(currentSize.toString()); // Add to front to keep descending order
+      currentSize *= 2;
     }
     
     return sizes;
@@ -42,15 +39,17 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
     let description = `Top ${numTeams} teams qualify based on regular season record. `;
     description += `All matches are best of ${series}. `;
     
-    if (rounds === 4) {
-      description += "Four rounds: Round of 16 → Quarter-Finals → Semi-Finals → Finals";
-    } else if (rounds === 3) {
-      description += "Three rounds: Quarter-Finals → Semi-Finals → Finals";
-    } else if (rounds === 2) {
-      description += "Two rounds: Semi-Finals → Finals";
-    } else {
-      description += "Single round: Finals";
-    }
+    const roundNames = [];
+    if (rounds >= 8) roundNames.push("Round of 256");
+    if (rounds >= 7) roundNames.push("Round of 128");
+    if (rounds >= 6) roundNames.push("Round of 64");
+    if (rounds >= 5) roundNames.push("Round of 32");
+    if (rounds >= 4) roundNames.push("Round of 16");
+    if (rounds >= 3) roundNames.push("Quarter-Finals");
+    if (rounds >= 2) roundNames.push("Semi-Finals");
+    roundNames.push("Finals");
+    
+    description += `${roundNames.length} rounds: ${roundNames.join(" → ")}`;
     
     return description;
   };
@@ -72,19 +71,15 @@ const EnterPlayoffView = ({ tournament, onTournamentUpdate }: EnterPlayoffViewPr
     const matches: PlayoffMatch[] = [];
     const numTeams = teams.length;
     
-    // Create matchups in proper seeding order
-    // For 8 teams: (1v8, 4v5, 2v7, 3v6)
-    // For 4 teams: (1v4, 2v3)
-    // For 2 teams: (1v2)
-    const matchupPairs = [];
-    if (numTeams === 8) {
-      matchupPairs.push([0, 7], [3, 4], [1, 6], [2, 5]); // 1v8, 4v5, 2v7, 3v6
-    } else if (numTeams === 4) {
-      matchupPairs.push([0, 3], [1, 2]); // 1v4, 2v3
-    } else if (numTeams === 2) {
-      matchupPairs.push([0, 1]); // 1v2
+    // Create matchups in proper seeding order for any power of 2 up to 256
+    const matchupPairs: [number, number][] = [];
+    
+    // Generate matchup pairs based on seeding
+    for (let i = 0; i < numTeams / 2; i++) {
+      matchupPairs.push([i, numTeams - 1 - i]); // Matches highest seed with lowest remaining seed
     }
 
+    // Create the playoff matches
     for (const [highSeedIndex, lowSeedIndex] of matchupPairs) {
       matches.push({
         id: crypto.randomUUID(),

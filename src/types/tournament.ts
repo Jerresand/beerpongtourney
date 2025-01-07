@@ -1,8 +1,12 @@
 export interface PlayerStats {
   gamesPlayed: number;
-  totalCups: number;
-  totalIces: number;
-  totalDefenses: number;
+  totalRegularSeasonCups: number;
+  totalRegularSeasonIces: number;
+  totalRegularSeasonDefenses: number;
+  totalPlayoffGamesPlayed: number;
+  totalPlayoffCups: number;
+  totalPlayoffIces: number;
+  totalPlayoffDefenses: number;
 }
 
 export interface Player {
