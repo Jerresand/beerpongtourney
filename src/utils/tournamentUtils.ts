@@ -73,7 +73,7 @@ export const generateTeams = (players: Player[], format: "singles" | "doubles"):
   return teams;
 };
 
-export const validateTournament = (players: Player[], format: "singles" | "doubles"): { isValid: boolean; error?: string } => {
+export const validateTournament = (players: Player[], format: "singles" | "doubles", type?: "playoffs" | "regular+playoffs"): { isValid: boolean; error?: string } => {
   if (players.length < 2) {
     return { isValid: false, error: "You need at least 2 players to create a tournament" };
   }
@@ -84,10 +84,26 @@ export const validateTournament = (players: Player[], format: "singles" | "doubl
 
   if (format === "doubles") {
     if (players.length % 2 !== 0) {
-      return { isValid: false, error: "Doubles tournaments require an even number of players" };
+      return { isValid: false, error: "⚠️ Cannot start tournament: Doubles tournaments require an even number of players" };
     }
     if (players.length < 4) {
-      return { isValid: false, error: "Doubles tournaments require at least 4 players (2 teams)" };
+      return { isValid: false, error: "⚠️ Cannot start tournament: Doubles tournaments require at least 4 players (2 teams)" };
+    }
+  }
+
+  // Additional validation for playoff-only tournaments
+  if (type === "playoffs") {
+    const numPlayers = format === "doubles" ? players.length / 2 : players.length;
+    const isPowerOfTwo = Math.log2(numPlayers) % 1 === 0;
+    const validSizes = [2, 4, 8, 16, 32, 64, 128, 256];
+    
+    if (!isPowerOfTwo || !validSizes.includes(numPlayers)) {
+      const nearestLower = validSizes.filter(size => size <= numPlayers).pop() || 2;
+      const nearestHigher = validSizes.find(size => size >= numPlayers) || 256;
+      return { 
+        isValid: false, 
+        error: `⚠️ Cannot start tournament: Playoff tournaments require ${format === "doubles" ? "teams" : "players"} count to be one of: ${validSizes.join(", ")}. Consider adjusting to ${nearestLower} or ${nearestHigher} ${format === "doubles" ? "teams" : "players"}.`
+      };
     }
   }
 

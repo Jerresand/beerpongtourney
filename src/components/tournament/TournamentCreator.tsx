@@ -145,7 +145,7 @@ const TournamentCreator = () => {
   };
 
   const handleGenerateSchedule = () => {
-    const validation = validateTournament(players, format);
+    const validation = validateTournament(players, format, tournamentType);
     if (!validation.isValid) {
       toast({
         variant: "destructive",

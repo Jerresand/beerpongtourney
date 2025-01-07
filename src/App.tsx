@@ -5,6 +5,7 @@ import Index from "./routes/Index";
 import Tournament from "./routes/Tournament";
 import ActiveTournaments from "./routes/ActiveTournaments";
 import TournamentView from "./routes/TournamentView";
+import { Toaster } from "./components/ui/toaster";
 import "./App.css";
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
           }
         />
       </Routes>
+      <Toaster />
     </Router>
   );
 }
