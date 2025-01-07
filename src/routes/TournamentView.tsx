@@ -5,6 +5,7 @@ import { Tournament } from "@/types/tournament";
 import RegularSeasonView from "@/components/tournament/RegularSeasonView";
 import EnterPlayoffView from "@/components/tournament/EnterPlayoffView";
 import PlayoffView from "@/components/tournament/PlayoffView";
+import PlayoffOnlyView from "@/components/tournament/PlayoffOnlyView";
 import TeamView from "@/components/tournament/TeamView";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -117,7 +118,7 @@ const TournamentView = () => {
             >
               Edit Teams
             </Button>
-            {tournament.currentPhase === "playoffs" ? (
+            {tournament.type === "regular+playoffs" && tournament.currentPhase === "playoffs" && (
               <Button
                 onClick={() => {
                   const updatedTournament: Tournament = {
@@ -131,7 +132,8 @@ const TournamentView = () => {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Regular Season
               </Button>
-            ) : (
+            )}
+            {tournament.type === "regular+playoffs" && tournament.currentPhase === "regular" && (
               <Button
                 disabled={!areAllGamesPlayed()}
                 onClick={handleStartPlayoffs}
@@ -147,7 +149,19 @@ const TournamentView = () => {
           </div>
         </div>
         
-        {tournament.currentPhase === "playoffs" ? (
+        {tournament.type === "playoffs" ? (
+          tournament.playoffMatches.length > 0 ? (
+            <PlayoffOnlyView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          ) : (
+            <EnterPlayoffView 
+              tournament={tournament}
+              onTournamentUpdate={handleTournamentUpdate}
+            />
+          )
+        ) : tournament.currentPhase === "playoffs" ? (
           tournament.playoffMatches.length > 0 ? (
             <PlayoffView 
               tournament={tournament}

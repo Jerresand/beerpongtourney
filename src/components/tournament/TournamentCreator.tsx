@@ -6,7 +6,7 @@ import TournamentHeader from "./TournamentHeader";
 import TournamentSettings from "./TournamentSettings";
 import PlayerManagement from "./PlayerManagement";
 import { generateRegularSeasonSchedule } from "@/utils/scheduleGenerator";
-import { Player, Tournament, RegularMatch, Team } from "@/types/tournament";
+import { Player, Tournament, RegularMatch, Team, PlayoffMatch } from "@/types/tournament";
 import { validateTournament } from '@/utils/tournamentUtils';
 import { createTeam } from '@/utils/teamUtils';
 import DoublesTeamCreator from './DoublesTeamCreator';
@@ -55,9 +55,13 @@ const TournamentCreator = () => {
         name: newPlayerName.trim(),
         stats: {
           gamesPlayed: 0,
-          totalCups: 0,
-          totalIces: 0,
-          totalDefenses: 0
+          totalRegularSeasonCups: 0,
+          totalRegularSeasonIces: 0,
+          totalRegularSeasonDefenses: 0,
+          totalPlayoffGamesPlayed: 0,
+          totalPlayoffCups: 0,
+          totalPlayoffIces: 0,
+          totalPlayoffDefenses: 0
         }
       }]);
       setNewPlayerName("");
@@ -76,13 +80,68 @@ const TournamentCreator = () => {
         name: p.name,
         stats: {
           gamesPlayed: 0,
-          totalCups: 0,
-          totalIces: 0,
-          totalDefenses: 0
+          totalRegularSeasonCups: 0,
+          totalRegularSeasonIces: 0,
+          totalRegularSeasonDefenses: 0,
+          totalPlayoffGamesPlayed: 0,
+          totalPlayoffCups: 0,
+          totalPlayoffIces: 0,
+          totalPlayoffDefenses: 0
         }
       })));
       setSelectedGroup(groupName);
     }
+  };
+
+  // Helper function to create playoff matches
+  const createInitialPlayoffMatches = (teams: Team[]): PlayoffMatch[] => {
+    // Randomize team order for seeding
+    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+    const matches: PlayoffMatch[] = [];
+    
+    // Create matchups based on team count (8 teams = quarter finals, 4 teams = semi finals, 2 teams = finals)
+    const numTeams = teams.length;
+    const matchupPairs = [];
+    
+    if (numTeams === 8) {
+      matchupPairs.push([0, 7], [3, 4], [1, 6], [2, 5]); // 1v8, 4v5, 2v7, 3v6
+    } else if (numTeams === 4) {
+      matchupPairs.push([0, 3], [1, 2]); // 1v4, 2v3
+    } else if (numTeams === 2) {
+      matchupPairs.push([0, 1]); // 1v2
+    }
+
+    // Create seed map for the randomized teams
+    const seedMap: Record<string, number> = {};
+    shuffledTeams.forEach((team, index) => {
+      seedMap[team.id] = index + 1;
+    });
+
+    // Create the playoff matches
+    for (const [highSeedIndex, lowSeedIndex] of matchupPairs) {
+      matches.push({
+        id: crypto.randomUUID(),
+        team1Id: shuffledTeams[highSeedIndex].id,
+        team2Id: shuffledTeams[lowSeedIndex].id,
+        team1Score: 0,
+        team2Score: 0,
+        team1PlayerStats: [],
+        team2PlayerStats: [],
+        isComplete: false,
+        isPlayoff: true,
+        series: 1,
+        bestOf: parseInt(matchesPerTeam), // Use matchesPerTeam as bestOf for playoffs
+        games: Array(parseInt(matchesPerTeam)).fill(null).map(() => ({
+          team1Score: 0,
+          team2Score: 0,
+          team1PlayerStats: [],
+          team2PlayerStats: [],
+          isComplete: false
+        }))
+      });
+    }
+
+    return matches;
   };
 
   const handleGenerateSchedule = () => {
@@ -102,11 +161,8 @@ const TournamentCreator = () => {
     }
 
     const teams = generateTeams(players, format);
-    const regularMatches = generateRegularSeasonSchedule(
-      teams,
-      parseInt(matchesPerTeam)
-    );
-
+    
+    // Create tournament based on type
     const tournament: Tournament = {
       id: crypto.randomUUID(),
       name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
@@ -114,12 +170,22 @@ const TournamentCreator = () => {
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
-      regularMatches,
-      playoffMatches: [],
-      currentPhase: "regular",
+      regularMatches: tournamentType === "playoffs" ? [] : generateRegularSeasonSchedule(teams, parseInt(matchesPerTeam)),
+      playoffMatches: tournamentType === "playoffs" ? createInitialPlayoffMatches(teams) : [],
+      currentPhase: tournamentType === "playoffs" ? "playoffs" : "regular",
       createdAt: new Date().toISOString(),
-      teams
+      teams,
+      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3 // Use matchesPerTeam as bestOf for playoffs
     };
+
+    // If it's a playoff tournament, also set the playoff seed map
+    if (tournamentType === "playoffs") {
+      const seedMap: Record<string, number> = {};
+      teams.forEach((team, index) => {
+        seedMap[team.id] = index + 1;
+      });
+      tournament.playoffSeedMap = seedMap;
+    }
 
     // Save to localStorage
     const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
@@ -127,21 +193,16 @@ const TournamentCreator = () => {
 
     toast({
       title: "Tournament Created! 🎉",
-      description: "Head to Active Tournaments to start the regular season",
+      description: tournamentType === "playoffs" 
+        ? "Head to Active Tournaments to start the playoffs"
+        : "Head to Active Tournaments to start the regular season",
     });
 
     navigate('/active-tournaments');
   };
 
   const handleTeamsCreated = (teams: Team[]) => {
-    // Store the teams first to ensure their IDs are preserved
-    const tournamentTeams = teams;
-    
-    const regularMatches = generateRegularSeasonSchedule(
-      tournamentTeams,
-      parseInt(matchesPerTeam)
-    );
-
+    // Create tournament based on type
     const tournament: Tournament = {
       id: crypto.randomUUID(),
       name: tournamentName || `Tournament ${new Date().toLocaleDateString()}`,
@@ -149,12 +210,22 @@ const TournamentCreator = () => {
       format,
       matchesPerTeam: parseInt(matchesPerTeam),
       type: tournamentType,
-      regularMatches,
-      playoffMatches: [],
-      currentPhase: "regular",
+      regularMatches: tournamentType === "playoffs" ? [] : generateRegularSeasonSchedule(teams, parseInt(matchesPerTeam)),
+      playoffMatches: tournamentType === "playoffs" ? createInitialPlayoffMatches(teams) : [],
+      currentPhase: tournamentType === "playoffs" ? "playoffs" : "regular",
       createdAt: new Date().toISOString(),
-      teams: tournamentTeams
+      teams,
+      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3 // Use matchesPerTeam as bestOf for playoffs
     };
+
+    // If it's a playoff tournament, also set the playoff seed map
+    if (tournamentType === "playoffs") {
+      const seedMap: Record<string, number> = {};
+      teams.forEach((team, index) => {
+        seedMap[team.id] = index + 1;
+      });
+      tournament.playoffSeedMap = seedMap;
+    }
 
     // Save to localStorage
     const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
@@ -162,7 +233,9 @@ const TournamentCreator = () => {
 
     toast({
       title: "Tournament Created! 🎉",
-      description: "Head to Active Tournaments to start the regular season",
+      description: tournamentType === "playoffs" 
+        ? "Head to Active Tournaments to start the playoffs"
+        : "Head to Active Tournaments to start the regular season",
     });
 
     navigate('/active-tournaments');

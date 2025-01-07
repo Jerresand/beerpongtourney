@@ -41,7 +41,7 @@ const Index = () => {
       if (mostRecent) {
         // Calculate total cups for this tournament
         const totalCups = mostRecent.players.reduce((sum, player) => 
-          sum + (player.stats?.totalCups || 0), 0
+          sum + (player.stats?.totalRegularSeasonCups || 0) + (player.stats?.totalPlayoffCups || 0), 0
         );
 
         // Find top team
@@ -53,7 +53,9 @@ const Index = () => {
 
         // Find top player
         const topPlayer = mostRecent.players.reduce((best, current) => {
-          return (current.stats?.totalCups || 0) > (best.stats?.totalCups || 0) ? current : best;
+          const currentTotal = (current.stats?.totalRegularSeasonCups || 0) + (current.stats?.totalPlayoffCups || 0);
+          const bestTotal = (best.stats?.totalRegularSeasonCups || 0) + (best.stats?.totalPlayoffCups || 0);
+          return currentTotal > bestTotal ? current : best;
         }, mostRecent.players[0]);
 
         setLeaders({
@@ -65,7 +67,7 @@ const Index = () => {
           } : null,
           topPlayer: topPlayer ? {
             name: topPlayer.name,
-            cups: topPlayer.stats?.totalCups || 0
+            cups: topPlayer.stats?.totalRegularSeasonCups || 0 + topPlayer.stats?.totalPlayoffCups || 0
           } : null,
           totalBeers: Math.ceil(totalCups / 3)
         });

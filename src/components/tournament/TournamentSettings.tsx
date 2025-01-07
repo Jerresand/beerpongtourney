@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 
 interface TournamentSettingsProps {
   format: "singles" | "doubles";
@@ -23,6 +24,15 @@ const TournamentSettings = ({
   matchesPerTeam,
   setMatchesPerTeam,
 }: TournamentSettingsProps) => {
+  // Reset matchesPerTeam to "3" when switching to regular+playoffs
+  useEffect(() => {
+    if (tournamentType === "regular+playoffs") {
+      setMatchesPerTeam("3");
+    } else {
+      setMatchesPerTeam("3"); // Default to Best of 3 for playoffs
+    }
+  }, [tournamentType, setMatchesPerTeam]);
+
   return (
     <div className="space-y-4">
       <div>
@@ -52,15 +62,27 @@ const TournamentSettings = ({
       </div>
 
       <div>
-        <label className="text-white text-sm font-medium">Face Each Team</label>
+        <label className="text-white text-sm font-medium">
+          {tournamentType === "playoffs" ? "Best of" : "Face Each Team"}
+        </label>
         <Select value={matchesPerTeam} onValueChange={setMatchesPerTeam}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1">Once</SelectItem>
-            <SelectItem value="2">Twice</SelectItem>
-            <SelectItem value="3">Three Times</SelectItem>
+            {tournamentType === "playoffs" ? (
+              <>
+                <SelectItem value="1">Best of 1</SelectItem>
+                <SelectItem value="3">Best of 3</SelectItem>
+                <SelectItem value="5">Best of 5</SelectItem>
+              </>
+            ) : (
+              <>
+                <SelectItem value="1">Once</SelectItem>
+                <SelectItem value="2">Twice</SelectItem>
+                <SelectItem value="3">Three Times</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
