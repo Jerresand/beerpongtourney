@@ -67,7 +67,7 @@ const RegularSeasonView: React.FC<RegularSeasonViewProps> = ({
         isEditingDisabled={isPlayoffsStarted}
       />
       <StandingsTable standings={standings} />
-      <StatisticsTable players={tournament.players} />
+      <StatisticsTable players={tournament.players} tournament={tournament} />
     </div>
   );
 };

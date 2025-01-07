@@ -62,7 +62,7 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({
 
     const team = teamMap.get(teamId);
     if (!team) {
-      console.warn(`Team with ID ${teamId} not found in team map.`);
+      
       return 'Unknown Team';
     }
     return team.name;

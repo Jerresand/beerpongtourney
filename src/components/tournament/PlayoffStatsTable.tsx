@@ -39,36 +39,10 @@ const PlayoffStatsTable: React.FC<PlayoffStatsTableProps> = ({ tournament }) => 
       playerStats[player.id] = {
         playerId: player.id,
         name: player.name,
-        cups: 0,
-        ices: 0,
-        defense: 0
+        cups: player.stats.totalPlayoffCups || 0,
+        ices: player.stats.totalPlayoffIces || 0,
+        defense: player.stats.totalPlayoffDefenses || 0
       };
-    });
-
-    // Aggregate stats from all playoff games
-    tournament.playoffMatches.forEach((match: PlayoffMatch) => {
-      match.games.forEach(game => {
-        // Only count completed games
-        if (!game.isComplete) return;
-
-        // Add team 1 player stats
-        game.team1PlayerStats.forEach(stat => {
-          if (playerStats[stat.playerId]) {
-            playerStats[stat.playerId].cups += stat.cups;
-            playerStats[stat.playerId].ices += stat.ices;
-            playerStats[stat.playerId].defense += stat.defense;
-          }
-        });
-
-        // Add team 2 player stats
-        game.team2PlayerStats.forEach(stat => {
-          if (playerStats[stat.playerId]) {
-            playerStats[stat.playerId].cups += stat.cups;
-            playerStats[stat.playerId].ices += stat.ices;
-            playerStats[stat.playerId].defense += stat.defense;
-          }
-        });
-      });
     });
 
     return Object.values(playerStats);

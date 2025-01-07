@@ -106,9 +106,16 @@ const MatchStatisticsManager = ({
 
         if (previousStats) {
           player.stats.gamesPlayed--;
-          player.stats.totalCups -= previousStats.cups;
-          player.stats.totalIces -= previousStats.ices;
-          player.stats.totalDefenses -= previousStats.defense;
+          if (match.isPlayoff) {
+            player.stats.totalPlayoffGamesPlayed--;
+            player.stats.totalPlayoffCups -= previousStats.cups;
+            player.stats.totalPlayoffIces -= previousStats.ices;
+            player.stats.totalPlayoffDefenses -= previousStats.defense;
+          } else {
+            player.stats.totalRegularSeasonCups -= previousStats.cups;
+            player.stats.totalRegularSeasonIces -= previousStats.ices;
+            player.stats.totalRegularSeasonDefenses -= previousStats.defense;
+          }
         }
       });
     }
@@ -153,14 +160,23 @@ const MatchStatisticsManager = ({
         const matchStats = team1Stats || team2Stats;
 
         if (matchStats) {
+          const updatedStats = { ...player.stats };
+          updatedStats.gamesPlayed = (updatedStats.gamesPlayed || 0) + 1;
+
+          if (match.isPlayoff) {
+            updatedStats.totalPlayoffGamesPlayed = (updatedStats.totalPlayoffGamesPlayed || 0) + 1;
+            updatedStats.totalPlayoffCups = (updatedStats.totalPlayoffCups || 0) + matchStats.cups;
+            updatedStats.totalPlayoffIces = (updatedStats.totalPlayoffIces || 0) + matchStats.ices;
+            updatedStats.totalPlayoffDefenses = (updatedStats.totalPlayoffDefenses || 0) + matchStats.defense;
+          } else {
+            updatedStats.totalRegularSeasonCups = (updatedStats.totalRegularSeasonCups || 0) + matchStats.cups;
+            updatedStats.totalRegularSeasonIces = (updatedStats.totalRegularSeasonIces || 0) + matchStats.ices;
+            updatedStats.totalRegularSeasonDefenses = (updatedStats.totalRegularSeasonDefenses || 0) + matchStats.defense;
+          }
+
           return {
             ...player,
-            stats: {
-              gamesPlayed: (player.stats?.gamesPlayed || 0) + 1,
-              totalCups: (player.stats?.totalCups || 0) + matchStats.cups,
-              totalIces: (player.stats?.totalIces || 0) + matchStats.ices,
-              totalDefenses: (player.stats?.totalDefenses || 0) + matchStats.defense
-            }
+            stats: updatedStats
           };
         }
         return player;
