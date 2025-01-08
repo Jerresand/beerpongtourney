@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import FacebookLogin from '@greatsumini/react-facebook-login';
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { userApi } from "@/services/userApi";
 
 interface FacebookLoginButtonProps {
   onLoginSuccess?: () => void;
@@ -25,28 +26,49 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
     }
   }, []);
 
-  const handleFacebookLogin = (response: any) => {
+  const handleFacebookLogin = async (response: any) => {
     if (response.accessToken) {
-      // Store the access token and user info
-      localStorage.setItem("fbAccessToken", response.accessToken);
-      localStorage.setItem("isAuthenticated", "true");
-      
-      // Store user profile info
-      const userProfile = {
-        id: response.id,
-        name: response.name,
-        email: response.email,
-        picture: response.picture?.data?.url,
-      };
-      localStorage.setItem("userProfile", JSON.stringify(userProfile));
+      try {
+        // Store the access token
+        localStorage.setItem("fbAccessToken", response.accessToken);
+        localStorage.setItem("isAuthenticated", "true");
+        
+        // Create or update user in MongoDB
+        const result = await userApi.createOrUpdateUser({
+          facebookId: response.id,
+          name: response.name,
+          email: response.email,
+          picture: response.picture?.data?.url,
+        });
 
-      toast({
-        title: `Welcome ${response.name}! 🏆`,
-        description: "Successfully logged in with Facebook",
-      });
+        if (!result.success) {
+          throw new Error(result.error);
+        }
 
-      onLoginSuccess?.();
-      navigate("/");
+        // Store user profile info in localStorage for easy access
+        const userProfile = {
+          id: response.id,
+          name: response.name,
+          email: response.email,
+          picture: response.picture?.data?.url,
+        };
+        localStorage.setItem("userProfile", JSON.stringify(userProfile));
+
+        toast({
+          title: `Welcome ${response.name}! 🏆`,
+          description: "Successfully logged in with Facebook",
+        });
+
+        onLoginSuccess?.();
+        navigate("/");
+      } catch (error) {
+        console.error('Failed to store user data:', error);
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: "Failed to store user data. Please try again.",
+        });
+      }
     }
   };
 
