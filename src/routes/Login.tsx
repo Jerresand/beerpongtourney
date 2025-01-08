@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy } from "lucide-react";
@@ -6,6 +6,7 @@ import { FacebookLoginButton } from "@/components/auth/FacebookLogin";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const handleGuestLogin = () => {
@@ -14,7 +15,10 @@ const Login = () => {
       title: "Welcome to BeerPongTourney! 🏆",
       description: "Let's get started!",
     });
-    navigate("/");
+    
+    // Redirect to the attempted URL or default to home
+    const from = (location.state as any)?.from?.pathname || "/";
+    navigate(from, { replace: true });
   };
 
   return (

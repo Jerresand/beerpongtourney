@@ -20,13 +20,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={
-          localStorage.getItem("isAuthenticated") === "true" ? (
-            <PrivateRoute>
-              <Index />
-            </PrivateRoute>
-          ) : (
-            <Navigate to="/login" replace />
-          )
+          <PrivateRoute>
+            <Index />
+          </PrivateRoute>
         } />
         
         <Route path="/login" element={<Login />} />
