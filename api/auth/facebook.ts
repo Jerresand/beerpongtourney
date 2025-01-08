@@ -7,23 +7,22 @@ export default async function handler(
   response: VercelResponse,
 ) {
   if (request.method !== 'POST') {
-    return response.status(405).json({ error: 'Method not allowed' });
+    return response.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
-    console.log('Received request body:', request.body);
     const { facebookId, name, email, picture } = request.body;
 
     if (!facebookId || !name || !email) {
-      console.error('Missing required fields:', { facebookId, name, email });
-      return response.status(400).json({ error: 'Missing required fields' });
+      return response.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields',
+        details: { facebookId: !!facebookId, name: !!name, email: !!email }
+      });
     }
 
-    console.log('Connecting to MongoDB...');
     await connectDB();
-    console.log('Connected to MongoDB successfully');
     
-    console.log('Attempting to create/update user:', { facebookId, name, email });
     const user = await User.findOneAndUpdate(
       { facebookId },
       {
@@ -38,7 +37,6 @@ export default async function handler(
         upsert: true,
       }
     );
-    console.log('User created/updated successfully:', user);
 
     return response.status(200).json({
       success: true,
@@ -46,21 +44,10 @@ export default async function handler(
     });
   } catch (error) {
     console.error('Failed to handle Facebook auth:', error);
-    console.error('Full error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
     
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Internal server error';
-      
     return response.status(500).json({
       success: false,
-      error: errorMessage,
-      details: process.env.NODE_ENV === 'development' 
-        ? { stack: error instanceof Error ? error.stack : undefined }
-        : undefined
+      error: error instanceof Error ? error.message : 'Internal server error'
     });
   }
 } 
