@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import FacebookLogin from '@greatsumini/react-facebook-login';
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 interface FacebookLoginButtonProps {
   onLoginSuccess?: () => void;
@@ -10,6 +11,19 @@ interface FacebookLoginButtonProps {
 export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isFBInitialized, setIsFBInitialized] = useState(false);
+
+  useEffect(() => {
+    // Check if FB SDK is initialized
+    if (window.FB) {
+      setIsFBInitialized(true);
+    } else {
+      // Listen for FB SDK initialization
+      window.fbAsyncInit = function() {
+        setIsFBInitialized(true);
+      };
+    }
+  }, []);
 
   const handleFacebookLogin = (response: any) => {
     if (response.accessToken) {
@@ -35,6 +49,18 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
       navigate("/");
     }
   };
+
+  if (!isFBInitialized) {
+    return (
+      <Button
+        type="button"
+        disabled
+        className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 opacity-50"
+      >
+        Loading Facebook Login...
+      </Button>
+    );
+  }
 
   return (
     <FacebookLogin

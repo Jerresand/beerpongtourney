@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import Login from "./routes/Login";
 import Index from "./routes/Index";
@@ -15,15 +15,17 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/"
-          element={
+        <Route path="/" element={
+          localStorage.getItem("isAuthenticated") === "true" ? (
             <PrivateRoute>
               <Index />
             </PrivateRoute>
-          }
-        />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        
+        <Route path="/login" element={<Login />} />
         <Route
           path="/tournament"
           element={
@@ -56,6 +58,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <Toaster />
       <Analytics />
