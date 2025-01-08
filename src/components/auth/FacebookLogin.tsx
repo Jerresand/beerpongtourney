@@ -38,7 +38,7 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
 
   return (
     <FacebookLogin
-      appId={process.env.VITE_FACEBOOK_APP_ID || ""}
+      appId={import.meta.env.VITE_FACEBOOK_APP_ID}
       onSuccess={handleFacebookLogin}
       onFail={(error) => {
         console.error("Facebook login failed:", error);

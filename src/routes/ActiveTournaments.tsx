@@ -11,67 +11,78 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-
-interface Player {
-  name: string;
-}
-
-interface Tournament {
-  id: string;
-  name: string;
-  players: Player[];
-  format: "singles" | "doubles";
-  matchesPerTeam: number;
-  type: "playoffs" | "regular+playoffs";
-  createdAt: string;
-  lastVisited?: string;
-}
+import { Tournament } from "@/types/tournament";
+import { tournamentApi } from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const ActiveTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const loadTournaments = () => {
-      const savedTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-      // Sort tournaments by lastVisited (most recent first), then by createdAt
-      const sortedTournaments = savedTournaments.sort((a: Tournament, b: Tournament) => {
-        if (a.lastVisited && b.lastVisited) {
-          return new Date(b.lastVisited).getTime() - new Date(a.lastVisited).getTime();
+    const fetchTournaments = async () => {
+      try {
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const userId = userProfile.id;
+
+        if (!userId) {
+          throw new Error('User not authenticated');
         }
-        if (a.lastVisited) return -1;
-        if (b.lastVisited) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-      setTournaments(sortedTournaments);
+
+        const response = await tournamentApi.getTournaments(userId);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || 'Failed to fetch tournaments');
+        }
+        setTournaments(response.data);
+      } catch (error) {
+        console.error('Failed to fetch tournaments:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to load tournaments. Please try again."
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadTournaments();
-    window.addEventListener('storage', loadTournaments);
-    
-    return () => {
-      window.removeEventListener('storage', loadTournaments);
-    };
-  }, []);
+    fetchTournaments();
+  }, [toast]);
 
-  const handleDelete = (id: string) => {
-    const updatedTournaments = tournaments.filter(t => t.id !== id);
-    localStorage.setItem('activeTournaments', JSON.stringify(updatedTournaments));
-    setTournaments(updatedTournaments);
+  const handleEdit = async (id: string) => {
+    try {
+      // Update lastVisited timestamp in MongoDB
+      const tournament = tournaments.find(t => t.id === id);
+      if (tournament) {
+        const response = await tournamentApi.updateTournament(id, {
+          ...tournament,
+          lastVisited: new Date().toISOString()
+        });
+        
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+      }
+      
+      navigate(`/tournament/${id}`);
+    } catch (error) {
+      console.error('Failed to update tournament:', error);
+      // Still navigate even if update fails
+      navigate(`/tournament/${id}`);
+    }
   };
 
-  const handleEdit = (id: string) => {
-    // Update lastVisited timestamp
-    const updatedTournaments = tournaments.map(t => 
-      t.id === id 
-        ? { ...t, lastVisited: new Date().toISOString() }
-        : t
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-dashboard-text">Loading tournaments...</div>
+        </div>
+      </Layout>
     );
-    localStorage.setItem('activeTournaments', JSON.stringify(updatedTournaments));
-    setTournaments(updatedTournaments);
-    
-    navigate(`/tournament/${id}`);
-  };
+  }
 
   return (
     <Layout>
@@ -100,37 +111,33 @@ const ActiveTournaments = () => {
               <TableBody>
                 {tournaments.map((tournament) => (
                   <TableRow key={tournament.id}>
-                    <TableCell className="text-white">{tournament.name}</TableCell>
-                    <TableCell className="text-dashboard-text">{tournament.format}</TableCell>
-                    <TableCell className="text-dashboard-text">{tournament.players.length}</TableCell>
+                    <TableCell className="font-medium text-white">
+                      {tournament.name}
+                    </TableCell>
                     <TableCell className="text-dashboard-text">
-                      {tournament.lastVisited 
-                        ? new Date(tournament.lastVisited).toLocaleString()
-                        : new Date(tournament.createdAt).toLocaleString()}
+                      {tournament.format === "singles" ? "Singles" : "Doubles"}
+                    </TableCell>
+                    <TableCell className="text-dashboard-text">
+                      {tournament.players.length}
+                    </TableCell>
+                    <TableCell className="text-dashboard-text">
+                      {tournament.lastVisited
+                        ? new Date(tournament.lastVisited).toLocaleDateString()
+                        : "Never"}
                     </TableCell>
                     <TableCell>
-                      <div className="space-x-2">
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          onClick={() => handleEdit(tournament.id)}
-                          className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
-                        >
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          Enter Tournament
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDelete(tournament.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(tournament.id)}
+                        className="hover:bg-dashboard-background"
+                      >
+                        <ArrowRight className="h-5 w-5 text-dashboard-text" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody> 
+              </TableBody>
             </Table>
           )}
         </div>

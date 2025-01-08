@@ -8,6 +8,7 @@ import TournamentView from "./routes/TournamentView";
 import Rules from "./routes/Rules";
 import { Toaster } from "./components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
       </Routes>
       <Toaster />
       <Analytics />
+      <SpeedInsights />
     </Router>
   );
 }

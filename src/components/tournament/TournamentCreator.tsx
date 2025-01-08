@@ -10,6 +10,7 @@ import { Player, Tournament, RegularMatch, Team, PlayoffMatch } from "@/types/to
 import { validateTournament } from '@/utils/tournamentUtils';
 import { createTeam } from '@/utils/teamUtils';
 import DoublesTeamCreator from './DoublesTeamCreator';
+import { tournamentApi } from '@/services/api';
 
 const TournamentCreator = () => {
   const [tournamentName, setTournamentName] = useState("");
@@ -144,7 +145,7 @@ const TournamentCreator = () => {
     return matches;
   };
 
-  const handleGenerateSchedule = () => {
+  const handleGenerateSchedule = async () => {
     const validation = validateTournament(players, format, tournamentType);
     if (!validation.isValid) {
       toast({
@@ -175,7 +176,7 @@ const TournamentCreator = () => {
       currentPhase: tournamentType === "playoffs" ? "playoffs" : "regular",
       createdAt: new Date().toISOString(),
       teams,
-      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3 // Use matchesPerTeam as bestOf for playoffs
+      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3
     };
 
     // If it's a playoff tournament, also set the playoff seed map
@@ -187,18 +188,37 @@ const TournamentCreator = () => {
       tournament.playoffSeedMap = seedMap;
     }
 
-    // Save to localStorage
-    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
+    try {
+      // Get the Facebook user ID from localStorage
+      const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+      const userId = userProfile.id;
 
-    toast({
-      title: "Tournament Created! 🎉",
-      description: tournamentType === "playoffs" 
-        ? "Head to Active Tournaments to start the playoffs"
-        : "Head to Active Tournaments to start the regular season",
-    });
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
 
-    navigate('/active-tournaments');
+      // Save to MongoDB
+      await tournamentApi.createTournament({
+        ...tournament,
+        userId
+      });
+
+      toast({
+        title: "Tournament Created! 🎉",
+        description: tournamentType === "playoffs" 
+          ? "Head to Active Tournaments to start the playoffs"
+          : "Head to Active Tournaments to start the regular season",
+      });
+
+      navigate('/active-tournaments');
+    } catch (error) {
+      console.error('Failed to create tournament:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create tournament. Please try again."
+      });
+    }
   };
 
   const handleTeamsCreated = (teams: Team[]) => {

@@ -3,61 +3,44 @@ import { useParams } from "react-router-dom";
 import Layout from "@/components/dashboard/Layout";
 import { Tournament } from "@/types/tournament";
 import RegularSeasonView from "@/components/tournament/RegularSeasonView";
-import EnterPlayoffView from "@/components/tournament/EnterPlayoffView";
 import PlayoffView from "@/components/tournament/PlayoffView";
 import PlayoffOnlyView from "@/components/tournament/PlayoffOnlyView";
-import TeamView from "@/components/tournament/TeamView";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { tournamentApi } from "@/services/api";
 
 const TournamentView = () => {
-  const { id } = useParams();
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [showTeamView, setShowTeamView] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams();
+  const { toast } = useToast();
 
-  // Load tournament data
   useEffect(() => {
-    const loadTournament = () => {
-      const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
-      const tournament = tournaments.find((t: Tournament) => t.id === id);
-      setTournament(tournament || null);
-    };
+    const fetchTournament = async () => {
+      if (!id) return;
 
-    loadTournament();
-
-    // Add storage event listener to update when localStorage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "activeTournaments") {
-        loadTournament();
+      try {
+        const response = await tournamentApi.getTournament(id);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || 'Tournament not found');
+        }
+        setTournament(response.data);
+      } catch (error) {
+        console.error('Failed to fetch tournament:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to load tournament. Please try again."
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [id]);
+    fetchTournament();
+  }, [id, toast]);
 
-  const handleTeamNameUpdate = (teamId: string, newName: string) => {
-    if (!tournament) return;
-
-    const updatedTournament = {
-      ...tournament,
-      teams: tournament.teams.map(team =>
-        team.id === teamId ? { ...team, name: newName } : team
-      )
-    };
-
-    // Update localStorage
-    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
-    const updatedTournaments = tournaments.map((t: Tournament) =>
-      t.id === tournament.id ? updatedTournament : t
-    );
-    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
-
-    setTournament(updatedTournament);
-  };
-
-  const handleStartPlayoffs = () => {
+  const handleStartPlayoffs = async () => {
     if (!tournament || !areAllGamesPlayed()) return;
     
     const updatedTournament: Tournament = {
@@ -65,130 +48,101 @@ const TournamentView = () => {
       currentPhase: "playoffs" as const
     };
 
-    // Update localStorage
-    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
-    const updatedTournaments = tournaments.map((t: Tournament) =>
-      t.id === tournament.id ? updatedTournament : t
-    );
-    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
-
-    setTournament(updatedTournament);
+    try {
+      const response = await tournamentApi.updateTournament(tournament.id, updatedTournament);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to start playoffs');
+      }
+      setTournament(response.data);
+      
+      toast({
+        title: "Playoffs Started! 🏆",
+        description: "The regular season has ended and playoffs have begun.",
+      });
+    } catch (error) {
+      console.error('Failed to start playoffs:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start playoffs. Please try again."
+      });
+    }
   };
 
-  // Add function to save tournament updates to localStorage
-  const saveTournamentToLocalStorage = (updatedTournament: Tournament) => {
-    const tournaments = JSON.parse(localStorage.getItem("activeTournaments") || "[]");
-    const updatedTournaments = tournaments.map((t: Tournament) =>
-      t.id === updatedTournament.id ? updatedTournament : t
-    );
-    localStorage.setItem("activeTournaments", JSON.stringify(updatedTournaments));
-    setTournament(updatedTournament);
+  const handleTournamentUpdate = async (updatedTournament: Tournament) => {
+    try {
+      const response = await tournamentApi.updateTournament(updatedTournament.id, updatedTournament);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to update tournament');
+      }
+      setTournament(response.data);
+    } catch (error) {
+      console.error('Failed to update tournament:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update tournament. Please try again."
+      });
+    }
   };
 
-  const handleTournamentUpdate = (updatedTournament: Tournament) => {
-    saveTournamentToLocalStorage(updatedTournament);
-  };
-
-  // Check if all regular season games are completed
   const areAllGamesPlayed = () => {
     if (!tournament) return false;
     return tournament.regularMatches.every(match => 
       match.team1Score !== undefined && 
       match.team2Score !== undefined && 
-      (match.team1Score > 0 || match.team2Score > 0)  // At least one team must have scored
+      (match.team1Score > 0 || match.team2Score > 0)
     );
   };
 
-  if (!tournament) return <div>Tournament not found</div>;
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-dashboard-text">Loading tournament...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!tournament) {
+    return (
+      <Layout>
+        <div className="text-center py-8 text-dashboard-text">
+          Tournament not found.
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-3xl font-bold text-white">{tournament.name}</h2>
             <p className="text-dashboard-text mt-2">
-              {tournament.format} - {tournament.type}
+              {tournament.format === "singles" ? "Singles" : "Doubles"} Tournament
             </p>
           </div>
-          <div className="flex gap-2">
+          {tournament.type === "regular+playoffs" && tournament.currentPhase === "regular" && (
             <Button
-              onClick={() => setShowTeamView(true)}
-              className="bg-dashboard-accent text-black hover:bg-dashboard-highlight"
+              onClick={handleStartPlayoffs}
+              disabled={!areAllGamesPlayed()}
+              className="bg-dashboard-accent hover:bg-dashboard-accent/90"
             >
-              Edit Team Names
+              Start Playoffs
             </Button>
-            {tournament.type === "regular+playoffs" && tournament.currentPhase === "playoffs" && (
-              <Button
-                onClick={() => {
-                  const updatedTournament: Tournament = {
-                    ...tournament,
-                    currentPhase: "regular" as const
-                  };
-                  handleTournamentUpdate(updatedTournament);
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Regular Season
-              </Button>
-            )}
-            {tournament.type === "regular+playoffs" && tournament.currentPhase === "regular" && (
-              <Button
-                disabled={!areAllGamesPlayed()}
-                onClick={handleStartPlayoffs}
-                className={`${
-                  areAllGamesPlayed() 
-                    ? "bg-green-600 hover:bg-green-700" 
-                    : "bg-gray-600 cursor-not-allowed"
-                } text-white`}
-              >
-                {tournament.playoffMatches.length > 0 ? "Back to Playoffs" : "Start Playoffs"}
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-        
-        {tournament.type === "playoffs" ? (
-          tournament.playoffMatches.length > 0 ? (
-            <PlayoffOnlyView 
-              tournament={tournament}
-              onTournamentUpdate={handleTournamentUpdate}
-            />
-          ) : (
-            <EnterPlayoffView 
-              tournament={tournament}
-              onTournamentUpdate={handleTournamentUpdate}
-            />
-          )
-        ) : tournament.currentPhase === "playoffs" ? (
-          tournament.playoffMatches.length > 0 ? (
-            <PlayoffView 
-              tournament={tournament}
-              onTournamentUpdate={handleTournamentUpdate}
-            />
-          ) : (
-            <EnterPlayoffView 
-              tournament={tournament}
-              onTournamentUpdate={handleTournamentUpdate}
-            />
-          )
-        ) : (
-          <RegularSeasonView 
-            tournament={tournament}
-            onTournamentUpdate={handleTournamentUpdate}
-            isPlayoffsStarted={tournament.playoffMatches.length > 0}
-          />
-        )}
 
-        <Dialog open={showTeamView} onOpenChange={setShowTeamView}>
-          <DialogContent className="bg-dashboard-background text-dashboard-text max-w-4xl max-h-[80vh] overflow-hidden">
-            <TeamView 
-              tournament={tournament} 
-              onTeamNameUpdate={handleTeamNameUpdate} 
-            />
-          </DialogContent>
-        </Dialog>
+        {tournament.type === "playoffs" ? (
+          <PlayoffOnlyView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+        ) : tournament.currentPhase === "playoffs" ? (
+          <PlayoffView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+        ) : (
+          <RegularSeasonView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+        )}
       </div>
     </Layout>
   );
