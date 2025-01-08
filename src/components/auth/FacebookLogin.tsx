@@ -28,6 +28,13 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
   const handleFacebookLogin = async (response: any) => {
     if (response.accessToken) {
       try {
+        console.log('FB Response:', { 
+          id: response.id,
+          name: response.name,
+          email: response.email,
+          picture: response.picture?.data?.url 
+        });
+
         // Store the access token
         localStorage.setItem("fbAccessToken", response.accessToken);
         localStorage.setItem("isAuthenticated", "true");
@@ -46,10 +53,12 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
           }),
         });
 
+        console.log('API Response Status:', apiResponse.status);
         const result = await apiResponse.json();
+        console.log('API Response Body:', result);
 
         if (!result.success) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error occurred');
         }
 
         // Store user profile info in localStorage for easy access
@@ -70,10 +79,14 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
         navigate("/");
       } catch (error) {
         console.error('Failed to store user data:', error);
+        console.error('Full error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          error
+        });
         toast({
           variant: "destructive",
           title: "Login Error",
-          description: "Failed to store user data. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to store user data. Please try again.",
         });
       }
     }
