@@ -1,8 +1,6 @@
-import Layout from "@/components/dashboard/Layout";
-
-const Privacy = () => {
+export default function Privacy() {
   return (
-    <Layout>
+    <div className="min-h-screen bg-dashboard-background p-8">
       <div className="max-w-4xl mx-auto space-y-8 text-dashboard-text">
         <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
         <p className="text-sm text-dashboard-muted">Last updated: {new Date().toLocaleDateString()}</p>
@@ -65,8 +63,6 @@ const Privacy = () => {
           <p>For any privacy-related questions or requests, please contact us at privacy@beerpongtourney.com</p>
         </section>
       </div>
-    </Layout>
+    </div>
   );
-};
-
-export default Privacy; 
+} 
