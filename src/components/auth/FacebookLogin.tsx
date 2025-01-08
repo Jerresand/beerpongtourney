@@ -3,7 +3,6 @@ import { useToast } from "@/hooks/use-toast";
 import FacebookLogin from '@greatsumini/react-facebook-login';
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { userApi } from "@/services/userApi";
 
 interface FacebookLoginButtonProps {
   onLoginSuccess?: () => void;
@@ -33,13 +32,21 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
         localStorage.setItem("fbAccessToken", response.accessToken);
         localStorage.setItem("isAuthenticated", "true");
         
-        // Create or update user in MongoDB
-        const result = await userApi.createOrUpdateUser({
-          facebookId: response.id,
-          name: response.name,
-          email: response.email,
-          picture: response.picture?.data?.url,
+        // Create or update user through Vercel API
+        const apiResponse = await fetch('/api/auth/facebook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            facebookId: response.id,
+            name: response.name,
+            email: response.email,
+            picture: response.picture?.data?.url,
+          }),
         });
+
+        const result = await apiResponse.json();
 
         if (!result.success) {
           throw new Error(result.error);
