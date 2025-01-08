@@ -8,6 +8,7 @@ import TournamentView from "./routes/TournamentView";
 import Rules from "./routes/Rules";
 import Privacy from "./routes/Privacy";
 import Terms from "./routes/Terms";
+import DeleteData from "./routes/DeleteData";
 import Footer from "./components/layout/Footer";
 import { Toaster } from "./components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
@@ -31,6 +32,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/delete-data" element={<DeleteData />} />
         <Route
           path="/tournament"
           element={

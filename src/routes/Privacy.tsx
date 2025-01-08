@@ -41,6 +41,7 @@ export default function Privacy() {
             <li>Object to data processing</li>
             <li>Request data portability</li>
           </ul>
+          <p className="mt-4">To delete your Facebook data associated with our app, visit our <a href="/delete-data" className="text-blue-400 hover:underline">Data Deletion Request</a> page.</p>
         </section>
 
         <section className="space-y-4">
