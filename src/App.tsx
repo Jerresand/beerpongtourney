@@ -6,6 +6,9 @@ import Tournament from "./routes/Tournament";
 import ActiveTournaments from "./routes/ActiveTournaments";
 import TournamentView from "./routes/TournamentView";
 import Rules from "./routes/Rules";
+import Privacy from "./routes/Privacy";
+import Terms from "./routes/Terms";
+import Footer from "./components/layout/Footer";
 import { Toaster } from "./components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -26,6 +29,8 @@ function App() {
         } />
         
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route
           path="/tournament"
           element={
@@ -60,6 +65,7 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      <Footer />
       <Toaster />
       <Analytics />
       <SpeedInsights />
