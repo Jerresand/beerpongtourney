@@ -50,9 +50,17 @@ export default async function handler(
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Internal server error';
+      
     return response.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' 
+        ? { stack: error instanceof Error ? error.stack : undefined }
+        : undefined
     });
   }
 } 
