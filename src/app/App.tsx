@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import PrivateRoute from "./components/auth/PrivateRoute";
+import PrivateRoute from "@/components/auth/PrivateRoute";
 import Login from "./routes/Login";
 import Index from "./routes/Index";
 import Tournament from "./routes/Tournament";
@@ -9,8 +9,8 @@ import Rules from "./routes/Rules";
 import Privacy from "./routes/Privacy";
 import Terms from "./routes/Terms";
 import DeleteData from "./routes/DeleteData";
-import Footer from "./components/layout/Footer";
-import { Toaster } from "./components/ui/toaster";
+import Footer from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";

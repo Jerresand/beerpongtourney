@@ -4,40 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/redcup.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>beerpongtourney - Ultimate Beer Pong Tournament Creator</title>
-    <meta name="description" content="Create and manage professional Beer Pong tournaments with our advanced Beer Pong Tournament Creator. Perfect for organizing leagues, playoffs, and brackets. Track stats, manage teams, and run both regular season and playoff tournaments." />
-    <meta name="keywords" content="beer pong tournament, beer pong bracket creator, beer pong league, beer pong playoffs, beer pong stats, beer pong table, tournament management, beer pong competition, beer pong tournament software" />
+    <title>BeerpongTourney - Ultimate Beer Pong Tournament Creator</title>
+    <meta name="description" content="Create and manage professional Beer Pong tournaments with our advanced Beer Pong Tournament Creator." />
     <meta name="author" content="beerpongtourney" />
-    <meta property="og:title" content="Beer Pong Tournament Creator & League Manager" />
-    <meta property="og:description" content="Professional Beer Pong Tournament Creator - Create leagues, playoffs, and track stats for your beer pong competitions." />
-    <meta property="og:image" content="/bubbles-1-transformed.jpeg" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Beer Pong Tournament Creator & League Manager" />
-    <meta name="twitter:description" content="Create and manage professional Beer Pong tournaments. Track stats, manage teams, and run both regular season and playoff tournaments." />
   </head>
-
   <body>
-    <div id="root"></div>
-    <script>
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId: '%VITE_FACEBOOK_APP_ID%',
-          cookie: true,
-          xfbml: true,
-          version: 'v18.0'
-        });
-      };
-
-      (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) return;
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Add a visible message to help debug -->
+    <div id="root">
+      <div style="display: none;">Loading...</div>
+    </div>
+    <script type="module" src="/src/app/main.tsx"></script>
   </body>
-</html>
+</html> 

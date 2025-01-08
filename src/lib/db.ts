@@ -1,21 +1,13 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = typeof process !== 'undefined' && process.env.MONGODB_URI 
-  ? process.env.MONGODB_URI 
-  : import.meta.env.VITE_MONGODB_URI || '';
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env');
-}
-
-// Define a type for our cached connection
-interface CachedConnection {
+// Define the type for our cached connection
+type MongooseCache = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
-}
+};
 
-// Create a cached connection object in the global scope
-const cached: CachedConnection = {
+// Use a simple object for caching
+const cached: MongooseCache = {
   conn: null,
   promise: null
 };
@@ -26,11 +18,7 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI!).then((mongoose) => {
       return mongoose;
     });
   }
