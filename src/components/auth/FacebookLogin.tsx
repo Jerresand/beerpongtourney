@@ -15,13 +15,15 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
 
   useEffect(() => {
     // Initialize Facebook SDK when it's loaded
-    if (window.FB) {
+    window.fbAsyncInit = function() {
+      window.FB.init({
+        appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: 'v18.0'
+      });
       setIsFBInitialized(true);
-    } else {
-      window.fbAsyncInit = function() {
-        setIsFBInitialized(true);
-      };
-    }
+    };
   }, []);
 
   const handleFacebookLogin = async (response: any) => {
@@ -89,6 +91,8 @@ export const FacebookLoginButton = ({ onLoginSuccess }: FacebookLoginButtonProps
           description: "Could not login with Facebook. Please try again.",
         });
       }}
+      scope="public_profile,email"
+      fields="id,name,email,picture"
       render={({ onClick }) => (
         <Button
           type="button"
