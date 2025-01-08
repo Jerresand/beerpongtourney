@@ -5,7 +5,9 @@ import Index from "./routes/Index";
 import Tournament from "./routes/Tournament";
 import ActiveTournaments from "./routes/ActiveTournaments";
 import TournamentView from "./routes/TournamentView";
+import Rules from "./routes/Rules";
 import { Toaster } from "./components/ui/toaster";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
 function App() {
@@ -45,8 +47,17 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/rules"
+          element={
+            <PrivateRoute>
+              <Rules />
+            </PrivateRoute>
+          }
+        />
       </Routes>
       <Toaster />
+      <Analytics />
     </Router>
   );
 }

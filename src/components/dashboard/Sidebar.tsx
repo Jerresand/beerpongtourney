@@ -1,4 +1,4 @@
-import { Beer, LogOut, Trophy, Plus, List } from "lucide-react";
+import { Beer, LogOut, Trophy, Plus, List, Book } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,6 +11,7 @@ import {
 
 const menuItems = [
   { icon: Beer, label: "Dashboard", path: "/" },
+  { icon: Book, label: "Rules & Guide", path: "/rules" },
 ];
 
 const Sidebar = () => {
@@ -32,6 +33,7 @@ const Sidebar = () => {
     <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-dashboard-text">BeerPongTourney</h1>
+        <p className="text-sm text-dashboard-muted mt-1">Professional Beer Pong Tournament Creator</p>
       </div>
       <nav className="space-y-2 flex-1">
         {menuItems.map((item) => (
