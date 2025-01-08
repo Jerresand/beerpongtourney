@@ -14,22 +14,34 @@ const Rules = () => {
               <li>10 cups per team arranged in a triangle formation</li>
               <li>Cups filled with the agreed-upon amount of beverage</li>
               <li>Two water cups for ball washing, one on each side</li>
+              
             </ul>
 
             <h2 className="text-2xl font-semibold mt-6 mb-4">Basic Beer Pong Tournament Rules</h2>
             <ul className="list-disc pl-6 space-y-2 text-dashboard-text">
               <li>Teams take turns throwing ping pong balls into the opposing team's cups</li>
               <li>Each team gets two shots per turn</li>
+              <li>Elbows need to be behind the table at all times when throwing</li>
               <li>If both players hit cups in the same turn, the balls are returned for bonus shots</li>
               <li>When a cup is hit, it is removed from the table</li>
               <li>The first team to eliminate all of the opposing team's cups wins</li>
               <li>Bounced shots can be blocked or swatted away</li>
+              <li>If a player is hit by a ball, they are out of the game</li>
+              <li>You can defend by flicking the ball out of the glass without getting any beer on your fingers</li>
+              <li>You can also defend by blowing the ball out while it spins around the glass, before it reaches the beer</li>
+            </ul>
+
+            <h2 className="text-2xl font-semibold mt-6 mb-4">Beerpong Stats</h2>
+            <ul className="list-disc pl-6 space-y-2 text-dashboard-text">
+              <li>A cup hit earns you a cup in the stats</li>
+              <li>Hitting the last cup is called an ice, hitting an ice earns you a cup and an ice in the stats. Clutch.</li>
+              <li>If you succefully defend a cup, you earn a defence in the stats</li>
             </ul>
 
             <h2 className="text-2xl font-semibold mt-6 mb-4">Special Tournament Rules</h2>
             <ul className="list-disc pl-6 space-y-2 text-dashboard-text">
               <li>Reformation/Racking allowed when 6, 3, and 1 cups remain</li>
-              <li>Rollbacks awarded for 2+ cup hits in one turn</li>
+              <li>Balls Back is awarded for 2+ cup hits in one turn</li>
               <li>Overtime rules: 3 cups in triangle formation if tied</li>
               <li>Redemption shot allowed for losing team</li>
             </ul>

@@ -15,6 +15,18 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Beer Pong Tournament Creator & League Manager" />
     <meta name="twitter:description" content="Create and manage professional Beer Pong tournaments. Track stats, manage teams, and run both regular season and playoff tournaments." />
+    <!-- Facebook SDK -->
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0'
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
   </head>
 
   <body>
