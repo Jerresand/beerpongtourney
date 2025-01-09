@@ -16,19 +16,31 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
 function App() {
+  // Check if user is authenticated
+  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
   return (
     <Router>
       <Routes>
+        {/* Redirect root to login if not authenticated */}
         <Route path="/" element={
-          <PrivateRoute>
-            <Index />
-          </PrivateRoute>
+          isAuthenticated ? (
+            <PrivateRoute>
+              <Index />
+            </PrivateRoute>
+          ) : (
+            <Navigate to="/login" replace />
+          )
         } />
         
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/" replace /> : <Login />
+        } />
+        
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/delete-data" element={<DeleteData />} />
+        
         <Route
           path="/tournament"
           element={
