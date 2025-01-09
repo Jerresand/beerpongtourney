@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy } from "lucide-react";
 
+// In your component:
+
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
