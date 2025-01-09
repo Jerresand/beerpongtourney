@@ -7,7 +7,6 @@ import PlayoffView from "@/components/tournament/PlayoffView";
 import PlayoffOnlyView from "@/components/tournament/PlayoffOnlyView";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { tournamentApi } from "@/services/api";
 
 const TournamentView = () => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -16,15 +15,16 @@ const TournamentView = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTournament = async () => {
+    const fetchTournament = () => {
       if (!id) return;
 
       try {
-        const response = await tournamentApi.getTournament(id);
-        if (!response.success || !response.data) {
-          throw new Error(response.error || 'Tournament not found');
+        const tournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
+        const found = tournaments.find((t: Tournament) => t.id === id);
+        if (!found) {
+          throw new Error('Tournament not found');
         }
-        setTournament(response.data);
+        setTournament(found);
       } catch (error) {
         console.error('Failed to fetch tournament:', error);
         toast({
@@ -40,7 +40,7 @@ const TournamentView = () => {
     fetchTournament();
   }, [id, toast]);
 
-  const handleStartPlayoffs = async () => {
+  const handleStartPlayoffs = () => {
     if (!tournament || !areAllGamesPlayed()) return;
     
     const updatedTournament: Tournament = {
@@ -48,58 +48,42 @@ const TournamentView = () => {
       currentPhase: "playoffs" as const
     };
 
-    try {
-      const response = await tournamentApi.updateTournament(tournament.id, updatedTournament);
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Failed to start playoffs');
-      }
-      setTournament(response.data);
-      
-      toast({
-        title: "Playoffs Started! 🏆",
-        description: "The regular season has ended and playoffs have begun.",
-      });
-    } catch (error) {
-      console.error('Failed to start playoffs:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start playoffs. Please try again."
-      });
-    }
+    handleTournamentUpdate(updatedTournament);
   };
 
-  const handleTournamentUpdate = async (updatedTournament: Tournament) => {
+  const handleTournamentUpdate = (updatedTournament: Tournament) => {
     try {
-      const response = await tournamentApi.updateTournament(updatedTournament.id, updatedTournament);
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Failed to update tournament');
-      }
-      setTournament(response.data);
+      const tournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
+      const updatedTournaments = tournaments.map((t: Tournament) => 
+        t.id === updatedTournament.id ? updatedTournament : t
+      );
+      localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
+      setTournament(updatedTournament);
+      
+      toast({
+        title: "Success",
+        description: "Tournament updated successfully"
+      });
     } catch (error) {
       console.error('Failed to update tournament:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update tournament. Please try again."
+        description: "Failed to update tournament. Please try again."
       });
     }
   };
 
   const areAllGamesPlayed = () => {
     if (!tournament) return false;
-    return tournament.regularMatches.every(match => 
-      match.team1Score !== undefined && 
-      match.team2Score !== undefined && 
-      (match.team1Score > 0 || match.team2Score > 0)
-    );
+    return tournament.regularMatches.every(match => match.isComplete);
   };
 
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-dashboard-text">Loading tournament...</div>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-dashboard-accent"></div>
         </div>
       </Layout>
     );
@@ -108,8 +92,9 @@ const TournamentView = () => {
   if (!tournament) {
     return (
       <Layout>
-        <div className="text-center py-8 text-dashboard-text">
-          Tournament not found.
+        <div className="text-center text-dashboard-text">
+          <h1 className="text-2xl font-bold">Tournament not found</h1>
+          <p>The tournament you're looking for doesn't exist.</p>
         </div>
       </Layout>
     );
@@ -119,16 +104,10 @@ const TournamentView = () => {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-white">{tournament.name}</h2>
-            <p className="text-dashboard-text mt-2">
-              {tournament.format === "singles" ? "Singles" : "Doubles"} Tournament
-            </p>
-          </div>
-          {tournament.type === "regular+playoffs" && tournament.currentPhase === "regular" && (
-            <Button
+          <h1 className="text-2xl font-bold text-dashboard-text">{tournament.name}</h1>
+          {tournament.type === "regular+playoffs" && tournament.currentPhase === "regular" && areAllGamesPlayed() && (
+            <Button 
               onClick={handleStartPlayoffs}
-              disabled={!areAllGamesPlayed()}
               className="bg-dashboard-accent hover:bg-dashboard-accent/90"
             >
               Start Playoffs
@@ -137,11 +116,20 @@ const TournamentView = () => {
         </div>
 
         {tournament.type === "playoffs" ? (
-          <PlayoffOnlyView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+          <PlayoffOnlyView 
+            tournament={tournament} 
+            onTournamentUpdate={handleTournamentUpdate}
+          />
         ) : tournament.currentPhase === "playoffs" ? (
-          <PlayoffView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+          <PlayoffView 
+            tournament={tournament} 
+            onTournamentUpdate={handleTournamentUpdate}
+          />
         ) : (
-          <RegularSeasonView tournament={tournament} onTournamentUpdate={handleTournamentUpdate} />
+          <RegularSeasonView 
+            tournament={tournament} 
+            onTournamentUpdate={handleTournamentUpdate}
+          />
         )}
       </div>
     </Layout>

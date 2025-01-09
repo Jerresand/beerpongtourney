@@ -11,76 +11,49 @@ import Terms from "./routes/Terms";
 import DeleteData from "./routes/DeleteData";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/toaster";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
-function App() {
-  // Check if user is authenticated
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-
+const App = () => {
   return (
     <Router>
-      <Routes>
-        {/* Redirect root to login if not authenticated */}
-        <Route path="/" element={
-          isAuthenticated ? (
+      <div className="min-h-screen bg-dashboard-background">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
             <PrivateRoute>
               <Index />
             </PrivateRoute>
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        
-        <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/" replace /> : <Login />
-        } />
-        
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/delete-data" element={<DeleteData />} />
-        
-        <Route
-          path="/tournament"
-          element={
+          } />
+          <Route path="/tournament" element={
             <PrivateRoute>
               <Tournament />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/tournament/:id"
-          element={
+          } />
+          <Route path="/tournament/:id" element={
             <PrivateRoute>
               <TournamentView />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/active-tournaments"
-          element={
+          } />
+          <Route path="/active-tournaments" element={
             <PrivateRoute>
               <ActiveTournaments />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/rules"
-          element={
+          } />
+          <Route path="/rules" element={
             <PrivateRoute>
               <Rules />
             </PrivateRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-      <Footer />
+          } />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/delete-data" element={<DeleteData />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Footer />
+      </div>
       <Toaster />
-      <Analytics />
-      <SpeedInsights />
     </Router>
   );
-}
+};
 
 export default App;

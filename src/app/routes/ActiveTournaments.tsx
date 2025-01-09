@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Tournament } from "@/types/tournament";
-import { tournamentApi } from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
 const ActiveTournaments = () => {
@@ -22,26 +21,16 @@ const ActiveTournaments = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTournaments = async () => {
+    const fetchTournaments = () => {
       try {
-        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        const userId = userProfile.id;
-
-        if (!userId) {
-          throw new Error('User not authenticated');
-        }
-
-        const response = await tournamentApi.getTournaments(userId);
-        if (!response.success || !response.data) {
-          throw new Error(response.error || 'Failed to fetch tournaments');
-        }
-        setTournaments(response.data);
+        const storedTournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
+        setTournaments(storedTournaments);
       } catch (error) {
         console.error('Failed to fetch tournaments:', error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to load tournaments. Please try again."
+          description: "Failed to load tournaments. Please try again."
         });
       } finally {
         setIsLoading(false);
@@ -51,34 +40,11 @@ const ActiveTournaments = () => {
     fetchTournaments();
   }, [toast]);
 
-  const handleEdit = async (id: string) => {
-    try {
-      // Update lastVisited timestamp in MongoDB
-      const tournament = tournaments.find(t => t.id === id);
-      if (tournament) {
-        const response = await tournamentApi.updateTournament(id, {
-          ...tournament,
-          lastVisited: new Date().toISOString()
-        });
-        
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-      }
-      
-      navigate(`/tournament/${id}`);
-    } catch (error) {
-      console.error('Failed to update tournament:', error);
-      // Still navigate even if update fails
-      navigate(`/tournament/${id}`);
-    }
-  };
-
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-dashboard-text">Loading tournaments...</div>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-dashboard-accent"></div>
         </div>
       </Layout>
     );
@@ -86,61 +52,74 @@ const ActiveTournaments = () => {
 
   return (
     <Layout>
-      <div className="space-y-8">
-        <div>
-          <h2 className="text-3xl font-bold text-white">Active Tournaments</h2>
-          <p className="text-dashboard-text mt-2">View and manage ongoing tournaments.</p>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-dashboard-text">Active Tournaments</h1>
+          <Button
+            onClick={() => navigate('/tournament')}
+            className="bg-dashboard-accent hover:bg-dashboard-accent/90"
+          >
+            Create New Tournament
+          </Button>
         </div>
 
-        <div className="bg-dashboard-card p-6 rounded-lg">
-          {tournaments.length === 0 ? (
-            <div className="text-center py-8 text-dashboard-text">
-              No active tournaments. Create one to get started!
-            </div>
-          ) : (
+        {tournaments.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-xl font-semibold text-dashboard-text mb-4">No Active Tournaments</h2>
+            <p className="text-dashboard-muted mb-8">Create your first tournament to get started!</p>
+            <Button
+              onClick={() => navigate('/tournament')}
+              className="bg-dashboard-accent hover:bg-dashboard-accent/90"
+            >
+              Create Tournament
+            </Button>
+          </div>
+        ) : (
+          <div className="bg-dashboard-card rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Tournament Name</TableHead>
                   <TableHead>Format</TableHead>
-                  <TableHead>Players</TableHead>
-                  <TableHead>Last Visited</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Phase</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tournaments.map((tournament) => (
                   <TableRow key={tournament.id}>
-                    <TableCell className="font-medium text-white">
+                    <TableCell className="font-medium text-dashboard-text">
                       {tournament.name}
                     </TableCell>
                     <TableCell className="text-dashboard-text">
                       {tournament.format === "singles" ? "Singles" : "Doubles"}
                     </TableCell>
                     <TableCell className="text-dashboard-text">
-                      {tournament.players.length}
+                      {tournament.type === "playoffs" ? "Playoffs Only" : "Regular + Playoffs"}
                     </TableCell>
                     <TableCell className="text-dashboard-text">
-                      {tournament.lastVisited
-                        ? new Date(tournament.lastVisited).toLocaleDateString()
-                        : "Never"}
+                      {tournament.currentPhase === "regular" ? "Regular Season" : "Playoffs"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-dashboard-text">
+                      {new Date(tournament.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
+                        onClick={() => navigate(`/tournament/${tournament.id}`)}
                         variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(tournament.id)}
-                        className="hover:bg-dashboard-background"
+                        className="text-dashboard-accent hover:text-dashboard-accent/90"
                       >
-                        <ArrowRight className="h-5 w-5 text-dashboard-text" />
+                        View <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

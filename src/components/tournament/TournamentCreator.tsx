@@ -10,7 +10,7 @@ import { Player, Tournament, RegularMatch, Team, PlayoffMatch } from "@/types/to
 import { validateTournament } from '@/utils/tournamentUtils';
 import { createTeam } from '@/utils/teamUtils';
 import DoublesTeamCreator from './DoublesTeamCreator';
-import { tournamentApi } from '@/services/api';
+import { Trophy } from "lucide-react";
 
 const TournamentCreator = () => {
   const [tournamentName, setTournamentName] = useState("");
@@ -189,19 +189,15 @@ const TournamentCreator = () => {
     }
 
     try {
-      // Get the Facebook user ID from localStorage
-      const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-      const userId = userProfile.id;
-
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
-
-      // Save to MongoDB
-      await tournamentApi.createTournament({
+      // Store tournament in localStorage
+      const tournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
+      const newTournament = {
         ...tournament,
-        userId
-      });
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      tournaments.push(newTournament);
+      localStorage.setItem('tournaments', JSON.stringify(tournaments));
 
       toast({
         title: "Tournament Created! 🎉",
