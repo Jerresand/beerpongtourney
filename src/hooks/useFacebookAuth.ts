@@ -11,6 +11,16 @@ interface FacebookAuthResponse {
   status: 'connected' | 'not_authorized' | 'unknown';
 }
 
+interface FacebookUserInfo {
+  id: string;
+  name: string;
+  picture?: {
+    data: {
+      url: string;
+    };
+  };
+}
+
 declare global {
   interface Window {
     FB: {
@@ -57,21 +67,34 @@ export function useFacebookAuth() {
           } else {
             reject(new Error('User cancelled login or did not fully authorize.'));
           }
-        }, { scope: 'public_profile,email' });
+        }, { scope: 'public_profile' });
       });
 
       const { accessToken } = response.authResponse;
-      const userResponse = await fetch('/api/auth/facebook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken })
-      });
+      
+      // Get user info directly from Facebook Graph API
+      const userResponse = await fetch(
+        `https://graph.facebook.com/me?fields=id,name,picture&access_token=${accessToken}`
+      );
 
       if (!userResponse.ok) {
-        throw new Error('Failed to authenticate with server');
+        throw new Error('Failed to get user info from Facebook');
       }
 
-      return await userResponse.json();
+      const userData: FacebookUserInfo = await userResponse.json();
+      
+      // For now, we'll store the user data in localStorage
+      // In a real app, you'd want to store this in a backend database
+      localStorage.setItem('fbUserData', JSON.stringify(userData));
+
+      return { 
+        success: true, 
+        user: {
+          facebookId: userData.id,
+          name: userData.name,
+          profilePicture: userData.picture?.data.url
+        }
+      };
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to login');
       throw err;
@@ -80,6 +103,7 @@ export function useFacebookAuth() {
 
   const logout = () => {
     window.FB.logout();
+    localStorage.removeItem('fbUserData');
   };
 
   return { login, logout, isLoading, error };
