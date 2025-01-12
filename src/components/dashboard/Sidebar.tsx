@@ -30,7 +30,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4">
+    <div className="hidden md:flex h-screen w-64 flex-col bg-dashboard-card border-r border-dashboard-accent/20 p-4 rounded-l-[2rem]">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-dashboard-text">BeerPongTourney</h1>
         <p className="text-sm text-dashboard-muted mt-1">Professional Beer Pong Tournament Creator</p>
@@ -40,7 +40,7 @@ const Sidebar = () => {
           <button
             key={item.label}
             className={cn(
-              "flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              "flex items-center space-x-3 w-full px-4 py-2 rounded-[1rem] text-sm font-medium transition-colors",
               location.pathname === item.path
                 ? "bg-dashboard-background text-dashboard-text"
                 : "text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background"
@@ -54,7 +54,7 @@ const Sidebar = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger className={cn(
-            "flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+            "flex items-center space-x-3 w-full px-4 py-2 rounded-[1rem] text-sm font-medium transition-colors",
             location.pathname.includes("/tournament")
               ? "bg-dashboard-background text-dashboard-text"
               : "text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background"
@@ -76,7 +76,7 @@ const Sidebar = () => {
       </nav>
       <button
         onClick={handleLogout}
-        className="flex items-center space-x-3 w-full px-4 py-2 rounded-lg text-sm font-medium text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background transition-colors"
+        className="flex items-center space-x-3 w-full px-4 py-2 rounded-[1rem] text-sm font-medium text-dashboard-muted hover:text-dashboard-text hover:bg-dashboard-background transition-colors"
       >
         <LogOut className="h-5 w-5" />
         <span>Logout</span>
