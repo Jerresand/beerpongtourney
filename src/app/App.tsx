@@ -22,53 +22,55 @@ const App = () => {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-dashboard-background">
-          <div className="fixed top-4 right-4 z-50">
-            <UserProfile />
+        <div className="min-h-screen bg-dashboard-background p-4 sm:p-6 md:p-8">
+          <div className="min-h-[calc(100vh-4rem)] bg-dashboard-background border-2 border-[#2c1810] rounded-[2rem] overflow-hidden relative">
+            <div className="fixed top-4 right-4 z-50">
+              <UserProfile />
+            </div>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                <PrivateRoute>
+                  <Index />
+                </PrivateRoute>
+              } />
+              <Route path="/tournament" element={
+                <PrivateRoute>
+                  <Tournament />
+                </PrivateRoute>
+              } />
+              <Route path="/tournament/:id" element={
+                <PrivateRoute>
+                  <TournamentView />
+                </PrivateRoute>
+              } />
+              <Route path="/active-tournaments" element={
+                <PrivateRoute>
+                  <ActiveTournaments />
+                </PrivateRoute>
+              } />
+              <Route path="/rules" element={
+                <PrivateRoute>
+                  <Rules />
+                </PrivateRoute>
+              } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              } />
+              <Route path="/profile" element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              } />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/delete-data" element={<DeleteData />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <Footer />
           </div>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={
-              <PrivateRoute>
-                <Index />
-              </PrivateRoute>
-            } />
-            <Route path="/tournament" element={
-              <PrivateRoute>
-                <Tournament />
-              </PrivateRoute>
-            } />
-            <Route path="/tournament/:id" element={
-              <PrivateRoute>
-                <TournamentView />
-              </PrivateRoute>
-            } />
-            <Route path="/active-tournaments" element={
-              <PrivateRoute>
-                <ActiveTournaments />
-              </PrivateRoute>
-            } />
-            <Route path="/rules" element={
-              <PrivateRoute>
-                <Rules />
-              </PrivateRoute>
-            } />
-            <Route path="/settings" element={
-              <PrivateRoute>
-                <Settings />
-              </PrivateRoute>
-            } />
-            <Route path="/profile" element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            } />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/delete-data" element={<DeleteData />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          <Footer />
         </div>
         <Toaster />
         <Analytics />
