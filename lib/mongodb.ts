@@ -5,10 +5,6 @@ declare global {
   var mongoose: { conn: any; promise: any } | undefined;
 }
 
-if (!import.meta.env.VITE_MONGODB_URI) {
-  throw new Error('Please add your MongoDB URI to .env.local');
-}
-
 // Use globalThis instead of global for cross-platform compatibility
 let cached = (globalThis as any).mongoose;
 
@@ -26,7 +22,10 @@ export async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(import.meta.env.VITE_MONGODB_URI, opts).then((mongoose) => {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error('MongoDB URI is not defined');
+
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
       return mongoose;
     });
   }
