@@ -84,7 +84,7 @@ export function useFacebookAuth() {
       });
 
       if (!apiResponse.ok) {
-        throw new Error('Failed to authenticate with server');
+        throw new Error('Failed to authenticate with servers');
       }
 
       const data = await apiResponse.json();
