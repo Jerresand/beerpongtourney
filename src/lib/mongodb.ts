@@ -1,13 +1,19 @@
 import mongoose from 'mongoose';
 
-if (!process.env.MONGODB_URI) {
+// Add type declaration for global mongoose
+declare global {
+  var mongoose: { conn: any; promise: any } | undefined;
+}
+
+if (!import.meta.env.VITE_MONGODB_URI) {
   throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-let cached = global.mongoose;
+// Use globalThis instead of global for cross-platform compatibility
+let cached = (globalThis as any).mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = (globalThis as any).mongoose = { conn: null, promise: null };
 }
 
 async function connectDB() {
@@ -20,7 +26,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(process.env.MONGODB_URI!, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(import.meta.env.VITE_MONGODB_URI, opts).then((mongoose) => {
       return mongoose;
     });
   }

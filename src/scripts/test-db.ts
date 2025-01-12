@@ -6,12 +6,12 @@ dotenv.config({ path: '.env.local' });
 
 async function testConnection() {
   try {
-    if (!process.env.MONGODB_URI) {
+    if (!process.env.VITE_MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
 
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.VITE_MONGODB_URI);
     console.log('Connected to MongoDB successfully!');
 
     // Create a test collection
