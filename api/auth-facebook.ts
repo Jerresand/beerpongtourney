@@ -1,10 +1,10 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDB } from '../lib/mongodb.js';
-import { User } from '../models/User.js';
+const { VercelRequest, VercelResponse } = require('@vercel/node');
+const { connectDB } = require('../lib/mongodb');
+const { User } = require('../models/User');
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
+module.exports = async function handler(
+  req: typeof VercelRequest,
+  res: typeof VercelResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
