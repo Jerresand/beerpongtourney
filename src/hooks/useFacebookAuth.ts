@@ -14,11 +14,15 @@ interface FacebookAuthResponse {
 interface FacebookUserInfo {
   id: string;
   name: string;
-  picture?: {
-    data: {
-      url: string;
-    };
+  email?: string;
+  profilePicture?: string;
+  preferences?: {
+    theme?: 'light' | 'dark';
+    notifications?: boolean;
+    language?: string;
   };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 declare global {
@@ -72,29 +76,27 @@ export function useFacebookAuth() {
 
       const { accessToken } = response.authResponse;
       
-      // Get user info directly from Facebook Graph API
-      const userResponse = await fetch(
-        `https://graph.facebook.com/me?fields=id,name,picture&access_token=${accessToken}`
-      );
+      // Call our API endpoint
+      const apiResponse = await fetch('/api/auth/facebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken })
+      });
 
-      if (!userResponse.ok) {
-        throw new Error('Failed to get user info from Facebook');
+      if (!apiResponse.ok) {
+        throw new Error('Failed to authenticate with server');
       }
 
-      const userData: FacebookUserInfo = await userResponse.json();
+      const data = await apiResponse.json();
       
-      // For now, we'll store the user data in localStorage
-      // In a real app, you'd want to store this in a backend database
-      localStorage.setItem('fbUserData', JSON.stringify(userData));
+      if (!data.success) {
+        throw new Error(data.error || 'Authentication failed');
+      }
 
-      return { 
-        success: true, 
-        user: {
-          facebookId: userData.id,
-          name: userData.name,
-          profilePicture: userData.picture?.data.url
-        }
-      };
+      // Store user data in localStorage
+      localStorage.setItem('userProfile', JSON.stringify(data.user));
+
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to login');
       throw err;
@@ -103,7 +105,7 @@ export function useFacebookAuth() {
 
   const logout = () => {
     window.FB.logout();
-    localStorage.removeItem('fbUserData');
+    localStorage.removeItem('userProfile');
   };
 
   return { login, logout, isLoading, error };

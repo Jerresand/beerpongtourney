@@ -5,6 +5,11 @@ export interface IUser {
   name: string;
   email?: string;
   profilePicture?: string;
+  preferences?: {
+    theme?: 'light' | 'dark';
+    notifications?: boolean;
+    language?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +29,22 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     },
     email: String,
     profilePicture: String,
+    preferences: {
+      theme: {
+        type: String,
+        enum: ['light', 'dark'],
+        default: 'dark',
+      },
+      notifications: {
+        type: Boolean,
+        default: false,
+      },
+      language: {
+        type: String,
+        enum: ['en', 'es', 'fr'],
+        default: 'en',
+      },
+    },
   },
   {
     timestamps: true,
