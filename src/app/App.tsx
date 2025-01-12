@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Analytics } from '@vercel/analytics/react';
 import PrivateRoute from "@/components/auth/PrivateRoute";
 import Login from "./routes/Login";
 import Index from "./routes/Index";
@@ -52,6 +53,7 @@ const App = () => {
         <Footer />
       </div>
       <Toaster />
+      <Analytics />
     </Router>
   );
 };
