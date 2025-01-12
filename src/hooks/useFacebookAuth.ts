@@ -77,14 +77,20 @@ export function useFacebookAuth() {
       const { accessToken } = response.authResponse;
       
       // Call our API endpoint
-      const apiResponse = await fetch('/api/auth/facebook', {
+      const apiResponse = await fetch('https://beerpongtourney.com/api/auth/facebook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accessToken })
       });
 
       if (!apiResponse.ok) {
-        throw new Error('Failed to authenticate with servers');
+        const errorData = await apiResponse.json().catch(() => ({}));
+        console.error('Server authentication failed:', {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          error: errorData
+        });
+        throw new Error(`Failed to authenticate with server: ${apiResponse.status} ${apiResponse.statusText}`);
       }
 
       const data = await apiResponse.json();
