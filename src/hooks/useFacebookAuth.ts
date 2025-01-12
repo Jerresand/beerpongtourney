@@ -76,8 +76,8 @@ export function useFacebookAuth() {
 
       const { accessToken } = response.authResponse;
       
-      // Call our API endpoint
-      const apiResponse = await fetch('https://beerpongtourney.com/api/auth/facebook', {
+      // Call our API endpoint using the same domain as origin
+      const apiResponse = await fetch('https://www.beerpongtourney.com/api/auth/facebook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accessToken })
