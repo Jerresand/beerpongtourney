@@ -1,5 +1,5 @@
-import connectDB from '../lib/mongodb';
-import { User, IUser } from '../models/User';
+import { connectDB } from '@/lib/mongodb';
+import { User } from '@/models/User';
 import type { Document } from 'mongoose';
 
 export async function testConnection() {
@@ -7,9 +7,14 @@ export async function testConnection() {
     await connectDB();
     
     const testUser = await new User({
-      facebookId: 'test123',
       name: 'Test User',
       email: 'test@example.com',
+      password: 'testpass123',
+      preferences: {
+        theme: 'dark',
+        notifications: false,
+        language: 'en'
+      }
     }).save();
 
     console.log('Test user created:', testUser);

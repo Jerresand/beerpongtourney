@@ -1,9 +1,10 @@
 import mongoose, { Document, Model } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface IUser {
-  facebookId: string;
+  email: string;
+  password: string;
   name: string;
-  email?: string;
   profilePicture?: string;
   preferences?: {
     theme?: 'light' | 'dark';
@@ -14,20 +15,28 @@ export interface IUser {
   updatedAt: Date;
 }
 
-export interface IUserDocument extends IUser, Document {}
+export interface IUserDocument extends IUser, Document {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
 
 const userSchema = new mongoose.Schema<IUserDocument>(
   {
-    facebookId: {
+    email: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
     },
     name: {
       type: String,
       required: true,
     },
-    email: String,
     profilePicture: String,
     preferences: {
       theme: {
@@ -50,5 +59,23 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     timestamps: true,
   }
 );
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 export const User: Model<IUserDocument> = mongoose.models.User || mongoose.model<IUserDocument>('User', userSchema); 

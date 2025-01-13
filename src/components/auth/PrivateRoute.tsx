@@ -1,32 +1,14 @@
-import { Navigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const location = useLocation();
+export function PrivateRoute() {
+  const { isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const auth = localStorage.getItem("isAuthenticated") === "true";
-      setIsAuthenticated(auth);
-      setIsChecking(false);
-    };
-    
-    checkAuth();
-  }, []);
-
-  if (isChecking) {
-    // Optional: You could show a loading spinner here
-    return null;
-  }
-
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
-    // Save the attempted URL for redirecting after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
-};
-
-export default PrivateRoute;
+  // If authenticated, render the child routes
+  return <Outlet />;
+}

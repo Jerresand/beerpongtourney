@@ -1,11 +1,9 @@
-const { VercelRequest, VercelResponse } = require('@vercel/node');
-const { connectDB } = require('../lib/mongodb');
-const { User } = require('../models/User');
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { connectDB } from '../lib/mongodb';
+import { User } from '../models/User';
+import { cors } from './middleware/cors';
 
-module.exports = async function handler(
-  req: typeof VercelRequest,
-  res: typeof VercelResponse
-) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -65,13 +63,10 @@ module.exports = async function handler(
       success: true, 
       user: {
         id: user._id,
-        facebookId: user.facebookId,
         name: user.name,
         email: user.email,
         profilePicture: user.profilePicture,
-        preferences: user.preferences,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        preferences: user.preferences
       }
     });
   } catch (error) {
@@ -82,4 +77,6 @@ module.exports = async function handler(
       details: error instanceof Error ? error.stack : undefined
     });
   }
-} 
+}
+
+export default cors(handler); 
