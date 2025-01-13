@@ -1,0 +1,7 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+    "mongoose": "^8.9.3",
+    "bcryptjs": "^2.4.3"
+  }
+} 

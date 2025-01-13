@@ -1,3 +1,4 @@
+import { connectDB } from '../../lib/mongodb';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
@@ -5,17 +6,19 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 async function testConnection() {
+  let db: typeof mongoose | null = null;
+  
   try {
-    if (!process.env.VITE_MONGODB_URI) {
+    if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
 
-    // Connect to MongoDB
-    await mongoose.connect(process.env.VITE_MONGODB_URI);
+    // Connect to MongoDB using our improved connection handler
+    db = await connectDB();
     console.log('Connected to MongoDB successfully!');
 
     // Create a test collection
-    const testCollection = mongoose.connection.collection('test');
+    const testCollection = db.connection.collection('test');
     
     // Insert a test document
     await testCollection.insertOne({
@@ -31,11 +34,17 @@ async function testConnection() {
     console.log('Retrieved test document:', doc);
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error:', error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    } : error);
   } finally {
     // Close the connection
-    await mongoose.connection.close();
-    console.log('Connection closed');
+    if (db?.connection.readyState === 1) {
+      await db.connection.close();
+      console.log('Connection closed');
+    }
   }
 }
 

@@ -1,25 +1,9 @@
-import mongoose, { Document, Model } from 'mongoose';
-import bcrypt from 'bcryptjs';
+// @ts-check
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-export interface IUser {
-  email: string;
-  password: string;
-  name: string;
-  profilePicture?: string;
-  preferences?: {
-    theme?: 'light' | 'dark';
-    notifications?: boolean;
-    language?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface IUserDocument extends IUser, Document {
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
-
-const userSchema = new mongoose.Schema<IUserDocument>(
+/** @type {import('mongoose').Schema} */
+const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -61,21 +45,28 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 );
 
 // Hash password before saving
+/** @this {import('mongoose').Document & { password: string }} */
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await bcrypt.hash(/** @type {string} */(this.password), salt);
     next();
   } catch (error) {
-    next(error as Error);
+    /** @type {import('mongoose').CallbackError} */
+    const err = error instanceof Error ? error : new Error('Unknown error during password hashing');
+    next(err);
   }
 });
 
 // Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+/** @param {string} candidatePassword */
+userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const User: Model<IUserDocument> = mongoose.models.User || mongoose.model<IUserDocument>('User', userSchema); 
+// Create the model
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+module.exports = { User }; 

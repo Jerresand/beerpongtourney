@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "outDir": ".vercel/output/functions",
+    "rootDir": ".",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "noEmit": false
+  },
+  "include": ["api/**/*", "api-lib/**/*"],
+  "exclude": ["node_modules", "dist", "src"]
+} 
