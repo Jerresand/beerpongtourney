@@ -5,6 +5,7 @@ const allowedOrigins = [
   'http://localhost:3000',  // Vercel dev server
   'http://localhost:8080',  // Alternative Vite port
   'https://www.beerpongtourney.com',
+  'https://www.beerpongtourney.com/login',
   'https://beerpongtourney.vercel.app'
 ];
 
