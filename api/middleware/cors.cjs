@@ -23,8 +23,8 @@ function cors(handler) {
     
     const origin = req.headers.origin;
     
-    // Allow requests from allowed origins or Vercel preview deployments
-    if (origin && (allowedOrigins.includes(origin) || origin.includes('vercel.app'))) {
+    // Allow requests from allowed origins, Vercel preview deployments, or Lovable preview domains
+    if (origin && (allowedOrigins.includes(origin) || origin.includes('vercel.app') || origin.includes('lovableproject.com'))) {
       res.setHeader('Access-Control-Allow-Origin', origin);
     }
 
@@ -51,4 +51,4 @@ function cors(handler) {
   };
 }
 
-module.exports = { cors }; 
+module.exports = { cors };

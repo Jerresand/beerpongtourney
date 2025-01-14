@@ -33,7 +33,7 @@ async function handler(req, res) {
   const origin = req.headers.origin || '';
   console.log('Request origin:', origin);
   
-  // Allow requests from localhost and Vercel deployments
+  // Allow requests from localhost, Vercel deployments, and Lovable preview domains
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:8080',
@@ -41,8 +41,8 @@ async function handler(req, res) {
     'https://beerpongtourney.vercel.app'
   ];
   
-  // Also allow any Vercel preview deployment
-  if (origin.includes('vercel.app')) {
+  // Also allow any Vercel preview deployment or Lovable preview domain
+  if (origin.includes('vercel.app') || origin.includes('lovableproject.com')) {
     allowedOrigins.push(origin);
   }
   
