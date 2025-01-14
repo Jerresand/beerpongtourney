@@ -23,7 +23,7 @@ interface AuthState {
   logout: () => void;
 }
 
-// In development, use the full URL. In production, use relative path
+// Use the correct API URL based on environment
 const API_URL = import.meta.env.DEV
   ? 'http://localhost:3000/api/auth'
   : '/api/auth';
@@ -133,4 +133,4 @@ export const useAuth = create<AuthState>()(
       }),
     }
   )
-); 
+);
