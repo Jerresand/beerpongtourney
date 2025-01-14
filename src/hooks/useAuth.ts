@@ -25,8 +25,8 @@ interface AuthState {
 
 // Use the correct API URL based on environment
 const API_URL = import.meta.env.DEV
-  ? 'http://localhost:3000/api/auth'
-  : '/api/auth';
+  ? 'http://localhost:3000/api/auth.cjs'
+  : '/api/auth.cjs';
 
 export const useAuth = create<AuthState>()(
   persist(
@@ -68,22 +68,34 @@ export const useAuth = create<AuthState>()(
 
       signup: async (name: string, email: string, password: string) => {
         try {
+          console.log('Attempting signup with:', { name, email });
+          
           const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
-            body: JSON.stringify({ action: 'signup', name, email, password }),
+            body: JSON.stringify({ 
+              action: 'signup',
+              name,
+              email,
+              password 
+            }),
             credentials: 'include',
           });
 
+          console.log('Signup response status:', response.status);
+
           if (!response.ok) {
             const error = await response.json();
+            console.error('Signup error response:', error);
             throw new Error(error.error || 'Failed to sign up');
           }
 
           const data = await response.json();
+          console.log('Signup success data:', data);
+          
           set({
             token: data.token,
             user: data.user,
