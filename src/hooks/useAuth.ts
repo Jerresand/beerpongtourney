@@ -47,7 +47,7 @@ export const useAuth = create<AuthState>()(
               'Accept': 'application/json'
             },
             body: JSON.stringify({ action: 'login', email, password }),
-            credentials: 'include',
+            credentials: 'same-origin',
           });
 
           console.log('Login response status:', response.status);
@@ -89,29 +89,18 @@ export const useAuth = create<AuthState>()(
               email,
               password 
             }),
-            credentials: 'include',
+            credentials: 'same-origin',
           });
 
           console.log('Signup response status:', response.status);
           
-          // Log the raw response text for debugging
-          const responseText = await response.text();
-          console.log('Raw response:', responseText);
-          
-          // Parse the response text as JSON
-          let data;
-          try {
-            data = JSON.parse(responseText);
-          } catch (e) {
-            console.error('Failed to parse response as JSON:', e);
-            throw new Error('Invalid response format from server');
-          }
-
           if (!response.ok) {
-            console.error('Signup error response:', data);
-            throw new Error(data.error || 'Failed to sign up');
+            const error = await response.json();
+            console.error('Signup error response:', error);
+            throw new Error(error.error || 'Failed to sign up');
           }
 
+          const data = await response.json();
           console.log('Signup success data:', data);
           
           set({
