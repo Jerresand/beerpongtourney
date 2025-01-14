@@ -9,9 +9,13 @@ describe('createTeam', () => {
       name: 'John Doe',
       stats: {
         gamesPlayed: 0,
-        totalCups: 0,
-        totalIces: 0,
-        totalDefenses: 0
+        totalRegularSeasonCups: 0,
+        totalRegularSeasonIces: 0,
+        totalRegularSeasonDefenses: 0,
+        totalPlayoffGamesPlayed: 0,
+        totalPlayoffCups: 0,
+        totalPlayoffIces: 0,
+        totalPlayoffDefenses: 0
       }
     };
     const team = createTeam([player]);
@@ -32,9 +36,13 @@ describe('createTeam', () => {
       name: 'John Doe',
       stats: {
         gamesPlayed: 0,
-        totalCups: 0,
-        totalIces: 0,
-        totalDefenses: 0
+        totalRegularSeasonCups: 0,
+        totalRegularSeasonIces: 0,
+        totalRegularSeasonDefenses: 0,
+        totalPlayoffGamesPlayed: 0,
+        totalPlayoffCups: 0,
+        totalPlayoffIces: 0,
+        totalPlayoffDefenses: 0
       }
     };
     const player2: Player = { 
@@ -42,9 +50,13 @@ describe('createTeam', () => {
       name: 'Jane Smith',
       stats: {
         gamesPlayed: 0,
-        totalCups: 0,
-        totalIces: 0,
-        totalDefenses: 0
+        totalRegularSeasonCups: 0,
+        totalRegularSeasonIces: 0,
+        totalRegularSeasonDefenses: 0,
+        totalPlayoffGamesPlayed: 0,
+        totalPlayoffCups: 0,
+        totalPlayoffIces: 0,
+        totalPlayoffDefenses: 0
       }
     };
     const team = createTeam([player1, player2]);
@@ -59,4 +71,4 @@ describe('createTeam', () => {
       gamesPlayed: 0
     });
   });
-}); 
+});

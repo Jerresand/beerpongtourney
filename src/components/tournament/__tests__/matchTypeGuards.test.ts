@@ -28,7 +28,15 @@ describe('Match Type Guards', () => {
       const playoffMatch: Match = {
         ...baseMatch,
         isPlayoff: true,
-        series: 1
+        series: 1,
+        bestOf: 3,
+        games: [{
+          team1Score: 0,
+          team2Score: 0,
+          team1PlayerStats: [],
+          team2PlayerStats: [],
+          isComplete: false
+        }]
       };
       expect(isRegularMatch(playoffMatch)).toBe(false);
     });
@@ -39,7 +47,15 @@ describe('Match Type Guards', () => {
       const playoffMatch: Match = {
         ...baseMatch,
         isPlayoff: true,
-        series: 1
+        series: 1,
+        bestOf: 3,
+        games: [{
+          team1Score: 0,
+          team2Score: 0,
+          team1PlayerStats: [],
+          team2PlayerStats: [],
+          isComplete: false
+        }]
       };
       expect(isPlayoffMatch(playoffMatch)).toBe(true);
     });
@@ -69,4 +85,4 @@ describe('Match Type Guards', () => {
       expect(isPlayoffPhase(tournament)).toBe(false);
     });
   });
-}); 
+});

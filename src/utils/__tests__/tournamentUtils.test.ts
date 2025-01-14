@@ -9,8 +9,34 @@ import { Player, Tournament } from '@/types/tournament';
 describe('validateTournament', () => {
   it('should validate a singles tournament with valid number of players', () => {
     const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+      { 
+        id: '1', 
+        name: 'Player 1', 
+        stats: {
+          gamesPlayed: 0,
+          totalRegularSeasonCups: 0,
+          totalRegularSeasonIces: 0,
+          totalRegularSeasonDefenses: 0,
+          totalPlayoffGamesPlayed: 0,
+          totalPlayoffCups: 0,
+          totalPlayoffIces: 0,
+          totalPlayoffDefenses: 0
+        }
+      },
+      { 
+        id: '2', 
+        name: 'Player 2', 
+        stats: {
+          gamesPlayed: 0,
+          totalRegularSeasonCups: 0,
+          totalRegularSeasonIces: 0,
+          totalRegularSeasonDefenses: 0,
+          totalPlayoffGamesPlayed: 0,
+          totalPlayoffCups: 0,
+          totalPlayoffIces: 0,
+          totalPlayoffDefenses: 0
+        }
+      }
     ];
     const result = validateTournament(players, 'singles');
     expect(result.isValid).toBe(true);
@@ -19,7 +45,7 @@ describe('validateTournament', () => {
 
   it('should invalidate a singles tournament with less than 2 players', () => {
     const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } }
     ];
     const result = validateTournament(players, 'singles');
     expect(result.isValid).toBe(false);
@@ -28,10 +54,10 @@ describe('validateTournament', () => {
 
   it('should validate a doubles tournament with valid number of players', () => {
     const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '3', name: 'Player 3', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '4', name: 'Player 4', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } },
+      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } },
+      { id: '3', name: 'Player 3', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } },
+      { id: '4', name: 'Player 4', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } }
     ];
     const result = validateTournament(players, 'doubles');
     expect(result.isValid).toBe(true);
@@ -40,21 +66,36 @@ describe('validateTournament', () => {
 
   it('should invalidate a doubles tournament with odd number of players', () => {
     const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '3', name: 'Player 3', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } },
+      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } },
+      { id: '3', name: 'Player 3', stats: { gamesPlayed: 0, totalRegularSeasonCups: 0, totalRegularSeasonIces: 0, totalRegularSeasonDefenses: 0, totalPlayoffGamesPlayed: 0, totalPlayoffCups: 0, totalPlayoffIces: 0, totalPlayoffDefenses: 0 } }
     ];
     const result = validateTournament(players, 'doubles');
     expect(result.isValid).toBe(false);
-    expect(result.error).toBe('Doubles tournaments require an even number of players');
+    expect(result.error).toBe('⚠️ Cannot start tournament: Doubles tournaments require an even number of players');
   });
 });
 
 describe('generateTeams', () => {
+  const createTestPlayer = (id: string, name: string): Player => ({
+    id,
+    name,
+    stats: {
+      gamesPlayed: 0,
+      totalRegularSeasonCups: 0,
+      totalRegularSeasonIces: 0,
+      totalRegularSeasonDefenses: 0,
+      totalPlayoffGamesPlayed: 0,
+      totalPlayoffCups: 0,
+      totalPlayoffIces: 0,
+      totalPlayoffDefenses: 0
+    }
+  });
+
   it('should generate singles teams correctly', () => {
-    const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+    const players = [
+      createTestPlayer('1', 'Player 1'),
+      createTestPlayer('2', 'Player 2')
     ];
     const teams = generateTeams(players, 'singles');
     
@@ -66,11 +107,11 @@ describe('generateTeams', () => {
   });
 
   it('should generate doubles teams correctly', () => {
-    const players: Player[] = [
-      { id: '1', name: 'Player 1', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '2', name: 'Player 2', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '3', name: 'Player 3', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } },
-      { id: '4', name: 'Player 4', stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } }
+    const players = [
+      createTestPlayer('1', 'Player 1'),
+      createTestPlayer('2', 'Player 2'),
+      createTestPlayer('3', 'Player 3'),
+      createTestPlayer('4', 'Player 4')
     ];
     const teams = generateTeams(players, 'doubles');
     
@@ -95,7 +136,16 @@ describe('calculateRegularStandings', () => {
           players: [{ 
             id: '1', 
             name: 'Player 1', 
-            stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } 
+            stats: {
+              gamesPlayed: 0,
+              totalRegularSeasonCups: 0,
+              totalRegularSeasonIces: 0,
+              totalRegularSeasonDefenses: 0,
+              totalPlayoffGamesPlayed: 0,
+              totalPlayoffCups: 0,
+              totalPlayoffIces: 0,
+              totalPlayoffDefenses: 0
+            }
           }],
           stats: { wins: 2, losses: 1, gamesPlayed: 3 }
         },
@@ -105,7 +155,16 @@ describe('calculateRegularStandings', () => {
           players: [{ 
             id: '2', 
             name: 'Player 2', 
-            stats: { gamesPlayed: 0, totalCups: 0, totalIces: 0, totalDefenses: 0 } 
+            stats: {
+              gamesPlayed: 0,
+              totalRegularSeasonCups: 0,
+              totalRegularSeasonIces: 0,
+              totalRegularSeasonDefenses: 0,
+              totalPlayoffGamesPlayed: 0,
+              totalPlayoffCups: 0,
+              totalPlayoffIces: 0,
+              totalPlayoffDefenses: 0
+            }
           }],
           stats: { wins: 1, losses: 2, gamesPlayed: 3 }
         }
@@ -132,4 +191,4 @@ describe('calculateRegularStandings', () => {
     const standings = calculateRegularStandings(null);
     expect(standings).toEqual([]);
   });
-}); 
+});

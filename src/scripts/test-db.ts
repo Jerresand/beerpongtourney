@@ -1,4 +1,4 @@
-import { connectDB } from '../../lib/mongodb';
+import { connectDB } from '../api-lib/mongodb';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 

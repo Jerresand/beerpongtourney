@@ -28,6 +28,14 @@ describe('Playoff Match Validation', () => {
     isComplete: false,
     isPlayoff: true,
     series: 1,
+    bestOf: 3,
+    games: [{
+      team1Score: 0,
+      team2Score: 0,
+      team1PlayerStats: [],
+      team2PlayerStats: [],
+      isComplete: false
+    }],
     ...overrides
   });
 
@@ -109,4 +117,4 @@ describe('Playoff Match Validation', () => {
       });
     });
   });
-}); 
+});
