@@ -1,4 +1,4 @@
-import { connectDB } from '../api-lib/mongodb';
+import { connectDB } from '../../api-lib/mongodb.cjs';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
@@ -49,4 +49,4 @@ async function testConnection() {
 }
 
 // Run the test
-testConnection(); 
+testConnection();
