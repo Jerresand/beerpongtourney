@@ -23,11 +23,15 @@ async function connectWithRetry(retries = MAX_RETRIES) {
  * @param {import('@vercel/node').VercelResponse} res
  */
 async function handler(req, res) {
+  console.log('Auth API called with method:', req.method);
+  console.log('Request body:', req.body);
+  
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Get the request origin
   const origin = req.headers.origin || '';
+  console.log('Request origin:', origin);
   
   // Allow requests from localhost and Vercel deployments
   const allowedOrigins = [
@@ -59,6 +63,7 @@ async function handler(req, res) {
 
   try {
     const { action } = req.body;
+    console.log('Action:', action);
     
     if (!action) {
       return res.status(400).json({ error: 'Action is required' });
@@ -69,13 +74,16 @@ async function handler(req, res) {
 
     if (action === 'signup') {
       const { name, email, password } = req.body;
+      console.log('Processing signup for:', email);
 
       if (!name || !email || !password) {
+        console.log('Missing required fields');
         return res.status(400).json({ error: 'All fields are required' });
       }
 
       const existingUser = await User.findOne({ email });
       if (existingUser) {
+        console.log('Email already registered:', email);
         return res.status(400).json({ error: 'Email already registered' });
       }
 
@@ -90,11 +98,15 @@ async function handler(req, res) {
         }
       });
 
+      console.log('User created successfully:', user._id);
+
       const token = jwt.sign(
         { userId: user._id },
         process.env.JWT_SECRET || 'fallback-secret-for-dev',
         { expiresIn: '7d' }
       );
+
+      console.log('JWT token generated');
 
       return res.status(201).json({
         token,
@@ -156,4 +168,4 @@ async function handler(req, res) {
   }
 }
 
-module.exports = handler; 
+module.exports = handler;

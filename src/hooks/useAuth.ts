@@ -38,6 +38,8 @@ export const useAuth = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
+          console.log('Attempting login with:', { email });
+          
           const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 
@@ -48,12 +50,17 @@ export const useAuth = create<AuthState>()(
             credentials: 'include',
           });
 
+          console.log('Login response status:', response.status);
+
           if (!response.ok) {
             const error = await response.json();
+            console.error('Login error response:', error);
             throw new Error(error.error || 'Failed to login');
           }
 
           const data = await response.json();
+          console.log('Login success data:', data);
+          
           set({
             token: data.token,
             user: data.user,
@@ -86,14 +93,25 @@ export const useAuth = create<AuthState>()(
           });
 
           console.log('Signup response status:', response.status);
-
-          if (!response.ok) {
-            const error = await response.json();
-            console.error('Signup error response:', error);
-            throw new Error(error.error || 'Failed to sign up');
+          
+          // Log the raw response text for debugging
+          const responseText = await response.text();
+          console.log('Raw response:', responseText);
+          
+          // Parse the response text as JSON
+          let data;
+          try {
+            data = JSON.parse(responseText);
+          } catch (e) {
+            console.error('Failed to parse response as JSON:', e);
+            throw new Error('Invalid response format from server');
           }
 
-          const data = await response.json();
+          if (!response.ok) {
+            console.error('Signup error response:', data);
+            throw new Error(data.error || 'Failed to sign up');
+          }
+
           console.log('Signup success data:', data);
           
           set({
