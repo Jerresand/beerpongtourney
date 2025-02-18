@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -14,16 +14,10 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     };
     
     checkAuth();
-  }, []);
+  }, [location.pathname]);
 
   if (isChecking) {
-    // Optional: You could show a loading spinner here
     return null;
-  }
-
-  if (!isAuthenticated) {
-    // Save the attempted URL for redirecting after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

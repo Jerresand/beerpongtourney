@@ -1,9 +1,8 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 export interface IUser {
-  facebookId: string;
   name: string;
-  email?: string;
+  email: string;
   profilePicture?: string;
   preferences?: {
     theme?: 'light' | 'dark';
@@ -18,7 +17,7 @@ export interface IUserDocument extends IUser, Document {}
 
 const userSchema = new mongoose.Schema<IUserDocument>(
   {
-    facebookId: {
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -27,7 +26,6 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       type: String,
       required: true,
     },
-    email: String,
     profilePicture: String,
     preferences: {
       theme: {
@@ -41,7 +39,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       },
       language: {
         type: String,
-        enum: ['en', 'es', 'fr'],
+        enum: ['en', 'sv'],
         default: 'en',
       },
     },

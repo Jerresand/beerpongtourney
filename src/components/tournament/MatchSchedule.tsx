@@ -159,11 +159,11 @@ const MatchSchedule: React.FC<MatchScheduleProps> = ({
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
-                      size="icon"
                       onClick={() => setSelectedMatch(match)}
-                      className="hover:bg-dashboard-background"
+                      className="hover:bg-dashboard-background text-dashboard-text hover:text-white"
                     >
-                      <Pencil className="h-5 w-5 text-dashboard-text" />
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Score
                     </Button>
                   </TableCell>
                 )}

@@ -132,15 +132,15 @@ export default function Settings() {
           <h2 className="text-xl font-semibold text-white mb-4">Account</h2>
           <div className="space-y-4">
             <div>
-              <Label>Connected with Facebook</Label>
+              <Label>Email</Label>
               <p className="text-sm text-dashboard-muted">
-                {user.facebookId ? 'Your account is connected to Facebook' : 'Not connected'}
+                {user.email}
               </p>
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>Name</Label>
               <p className="text-sm text-dashboard-muted">
-                {user.email || 'No email provided'}
+                {user.name}
               </p>
             </div>
           </div>

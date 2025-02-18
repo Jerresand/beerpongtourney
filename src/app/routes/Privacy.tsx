@@ -9,7 +9,7 @@ export default function Privacy() {
           <h2 className="text-xl font-semibold text-white">1. Information We Collect</h2>
           <p>We collect information that you provide directly to us when using BeerPongTourney:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Facebook login information (name, email, profile picture)</li>
+            <li>Basic account information (name, email)</li>
             <li>Tournament data and statistics</li>
             <li>User preferences and settings</li>
           </ul>
@@ -41,7 +41,7 @@ export default function Privacy() {
             <li>Object to data processing</li>
             <li>Request data portability</li>
           </ul>
-          <p className="mt-4">To delete your Facebook data associated with our app, visit our <a href="/delete-data" className="text-blue-400 hover:underline">Data Deletion Request</a> page.</p>
+          <p className="mt-4">To delete your data, visit our <a href="/delete-data" className="text-blue-400 hover:underline">Data Deletion Request</a> page.</p>
         </section>
 
         <section className="space-y-4">
@@ -53,7 +53,6 @@ export default function Privacy() {
           <h2 className="text-xl font-semibold text-white">6. Third-Party Services</h2>
           <p>We use the following third-party services:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Facebook Login for authentication</li>
             <li>MongoDB Atlas for data storage</li>
             <li>Vercel for hosting and analytics</li>
           </ul>

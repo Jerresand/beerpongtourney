@@ -3,7 +3,6 @@ import { Analytics } from '@vercel/analytics/react';
 import { UserProvider } from "@/contexts/UserContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
 import { UserProfile } from "@/components/user/UserProfile";
-import Login from "./routes/Login";
 import Index from "./routes/Index";
 import Tournament from "./routes/Tournament";
 import ActiveTournaments from "./routes/ActiveTournaments";
@@ -27,12 +26,7 @@ const App = () => {
             <UserProfile />
           </div>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={
-              <PrivateRoute>
-                <Index />
-              </PrivateRoute>
-            } />
+            <Route path="/" element={<Index />} />
             <Route path="/tournament" element={
               <PrivateRoute>
                 <Tournament />
@@ -48,11 +42,7 @@ const App = () => {
                 <ActiveTournaments />
               </PrivateRoute>
             } />
-            <Route path="/rules" element={
-              <PrivateRoute>
-                <Rules />
-              </PrivateRoute>
-            } />
+            <Route path="/rules" element={<Rules />} />
             <Route path="/settings" element={
               <PrivateRoute>
                 <Settings />

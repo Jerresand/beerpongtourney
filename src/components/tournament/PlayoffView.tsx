@@ -335,9 +335,10 @@ const PlayoffView: React.FC<PlayoffViewProps> = ({ tournament, onTournamentUpdat
                               variant="ghost"
                               size="sm"
                               onClick={() => setSelectedMatch(match)}
-                              className="text-dashboard-text hover:text-white"
+                              className="text-dashboard-text hover:text-white flex items-center"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit Game {currentGame + 1}
                             </Button>
                           </div>
                         </div>
