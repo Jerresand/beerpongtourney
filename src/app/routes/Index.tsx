@@ -118,34 +118,46 @@ const Index = () => {
               )}
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="bg-dashboard-card rounded-lg p-8">
-                <Trophy className="h-12 w-12 text-dashboard-accent mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Tournament Management</h3>
-                <p className="text-gray-400">
-                  Create and manage tournaments with ease. Set up brackets, track scores,
-                  and keep the competition flowing.
-                </p>
+            <>
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="bg-dashboard-card rounded-lg p-8">
+                  <Trophy className="h-12 w-12 text-dashboard-accent mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">Tournament Management</h3>
+                  <p className="text-gray-400">
+                    Create and manage tournaments with ease. Set up brackets, track scores,
+                    and keep the competition flowing.
+                  </p>
+                </div>
+
+                <div className="bg-dashboard-card rounded-lg p-8">
+                  <Crown className="h-12 w-12 text-dashboard-accent mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">Stats Tracking</h3>
+                  <p className="text-gray-400">
+                    Track player and team statistics. Monitor wins, losses, cups made,
+                    and crown your champions.
+                  </p>
+                </div>
+
+                <div className="bg-dashboard-card rounded-lg p-8">
+                  <Medal className="h-12 w-12 text-dashboard-accent mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">Leaderboards</h3>
+                  <p className="text-gray-400">
+                    Keep track of the best players and teams. Celebrate victories
+                    and maintain friendly competition.
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-dashboard-card rounded-lg p-8">
-                <Crown className="h-12 w-12 text-dashboard-accent mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Stats Tracking</h3>
-                <p className="text-gray-400">
-                  Track player and team statistics. Monitor wins, losses, cups made,
-                  and crown your champions.
-                </p>
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={() => navigate("/tournament")}
+                  className="h-16 px-8 text-xl bg-dashboard-accent hover:bg-dashboard-accent/90 flex items-center gap-3"
+                >
+                  <Plus className="h-6 w-6" />
+                  Create Your First Tournament
+                </Button>
               </div>
-
-              <div className="bg-dashboard-card rounded-lg p-8">
-                <Medal className="h-12 w-12 text-dashboard-accent mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Leaderboards</h3>
-                <p className="text-gray-400">
-                  Keep track of the best players and teams. Celebrate victories
-                  and maintain friendly competition.
-                </p>
-              </div>
-            </div>
+            </>
           )}
 
           {leaders && user && (
