@@ -21,7 +21,7 @@ const App = () => {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-dashboard-background">
+        <div className="min-h-screen bg-dashboard-background rounded-2xl">
           <div className="fixed top-4 right-4 z-50">
             <UserProfile />
           </div>
