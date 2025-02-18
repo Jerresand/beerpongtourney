@@ -32,10 +32,19 @@ const TournamentCreator = () => {
       const groups = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key !== 'activeTournaments') {
-          const value = localStorage.getItem(key);
-          if (value) {
-            groups.push({ name: key, players: JSON.parse(value) });
+        if (key && key !== 'tournaments' && key !== 'activeTournaments') {
+          try {
+            const value = localStorage.getItem(key);
+            if (value) {
+              const parsedValue = JSON.parse(value);
+              // Only add if it's an array (which groups should be)
+              if (Array.isArray(parsedValue)) {
+                groups.push({ name: key, players: parsedValue });
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to parse group ${key}, skipping:`, error);
+            continue;
           }
         }
       }
@@ -193,7 +202,6 @@ const TournamentCreator = () => {
       const tournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
       const newTournament = {
         ...tournament,
-        id: Date.now().toString(),
         createdAt: new Date().toISOString()
       };
       tournaments.push(newTournament);
@@ -231,7 +239,7 @@ const TournamentCreator = () => {
       currentPhase: tournamentType === "playoffs" ? "playoffs" : "regular",
       createdAt: new Date().toISOString(),
       teams,
-      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3 // Use matchesPerTeam as bestOf for playoffs
+      bestOf: tournamentType === "playoffs" ? parseInt(matchesPerTeam) : 3
     };
 
     // If it's a playoff tournament, also set the playoff seed map
@@ -243,18 +251,28 @@ const TournamentCreator = () => {
       tournament.playoffSeedMap = seedMap;
     }
 
-    // Save to localStorage
-    const existingTournaments = JSON.parse(localStorage.getItem('activeTournaments') || '[]');
-    localStorage.setItem('activeTournaments', JSON.stringify([...existingTournaments, tournament]));
+    try {
+      // Store tournament in localStorage
+      const tournaments = JSON.parse(localStorage.getItem('tournaments') || '[]');
+      tournaments.push(tournament);
+      localStorage.setItem('tournaments', JSON.stringify(tournaments));
 
-    toast({
-      title: "Tournament Created! 🎉",
-      description: tournamentType === "playoffs" 
-        ? "Head to Active Tournaments to start the playoffs"
-        : "Head to Active Tournaments to start the regular season",
-    });
+      toast({
+        title: "Tournament Created! 🎉",
+        description: tournamentType === "playoffs" 
+          ? "Head to Active Tournaments to start the playoffs"
+          : "Head to Active Tournaments to start the regular season",
+      });
 
-    navigate('/active-tournaments');
+      navigate('/active-tournaments');
+    } catch (error) {
+      console.error('Failed to create tournament:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create tournament. Please try again."
+      });
+    }
   };
 
   // Helper function to generate teams for singles
