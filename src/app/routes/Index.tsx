@@ -93,7 +93,7 @@ const Index = () => {
             <p className="text-gray-400 mt-2">
               {user 
                 ? "Create or join a tournament to get started."
-                : "Login to create and manage your tournaments."}
+                : "Your personal beerpong tournament manager."}
             </p>
           </div>
 
